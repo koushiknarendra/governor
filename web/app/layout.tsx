@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Svitch — The AI Control Layer",
+  title: "Svitch — Privacy-First AI Infrastructure",
   description:
-    "Switch between LLMs without losing context. Block every data leak. Cut AI costs 80%. Prove compliance on demand.",
+    "Keep personal data private in every AI call. PII redaction, agent audit trails, consent management, and compliance reports — for teams building AI on sensitive data.",
   icons: {
     icon: [
       { url: "/favicon.svg", type: "image/svg+xml" },

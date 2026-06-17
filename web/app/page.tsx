@@ -349,7 +349,7 @@ export default function Home() {
           <div className="r-grid-3">
             {[
               { num: "[01]", title: "Wrap",   desc: <p style={{ fontSize: 15, lineHeight: 1.6, color: "#71716B", margin: 0 }}>Wrap any client — <span style={{ fontFamily: CODE_FONT, fontSize: 13, color: "#0D0D0B" }}>svitch.wrap(openai.client)</span>. Context and tools carry across every model.</p> },
-              { num: "[02]", title: "Shield", desc: <p style={{ fontSize: 15, lineHeight: 1.6, color: "#71716B", margin: 0 }}>PII is detected and redacted before the prompt ever leaves your codebase. Eleven Indian entity types, on by default.</p> },
+              { num: "[02]", title: "Shield", desc: <p style={{ fontSize: 15, lineHeight: 1.6, color: "#71716B", margin: 0 }}>PII is detected and redacted before the prompt ever leaves your codebase. Aadhaar, PAN, UPI, GDPR entities, and more — on by default.</p> },
               { num: "[03]", title: "Route",  desc: <p style={{ fontSize: 15, lineHeight: 1.6, color: "#71716B", margin: 0 }}>Each query is complexity-scored. Routine work is auto-routed to a cheaper model — up to 80% off.</p> },
             ].map(({ num, title, desc }) => (
               <div key={num} className="r-process-step">
@@ -474,7 +474,7 @@ export default function Home() {
                 <span style={{ fontFamily: MONO, fontSize: 11, color: ACCENT }}>● LIVE</span>
               </div>
               <h3 style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.02em", margin: "0 0 12px" }}>PII redaction before the prompt</h3>
-              <p style={{ fontSize: 15, lineHeight: 1.65, color: "#71716B", margin: 0 }}>Detects Aadhaar, PAN, UPI, IFSC and seven more Indian entity types and strips them out before data reaches any model. Reversible, deterministic, logged.</p>
+              <p style={{ fontSize: 15, lineHeight: 1.65, color: "#71716B", margin: 0 }}>Detects Aadhaar, PAN, UPI, IFSC, IBAN, SSN, and 15+ more entity types — and strips them out before data reaches any model. Reversible, deterministic, logged.</p>
             </div>
             <div style={{ border: "1px solid #E8E8E4", background: "#FFFFFF", borderRadius: 6, padding: 18, fontFamily: CODE_FONT, fontSize: 12.5, lineHeight: 1.9, color: "#0D0D0B" }}>
               <div style={{ color: "#71716B", fontSize: 11, marginBottom: 8 }}>prompt — redacted</div>
@@ -595,9 +595,9 @@ export default function Home() {
         <div className="r-section-sm">
           <div className="r-grid-stats">
             {[
-              { stat: "11",       label: "Indian PII types\ndetected" },
-              { stat: "May 2027", label: "DPDP enforcement\ndeadline" },
-              { stat: "₹250 Cr",  label: "Max penalty per\nbreach" },
+              { stat: "15+",      label: "PII entity types\ncovered" },
+              { stat: "3",        label: "Compliance modes\nIndia · EU · US" },
+              { stat: "0 bytes",  label: "Personal data sent\nto any LLM API" },
             ].map(({ stat, label }) => (
               <div key={stat}>
                 <div className="r-stat-num" style={{ fontFamily: DISPLAY }}>{stat}</div>
