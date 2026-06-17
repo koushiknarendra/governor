@@ -112,6 +112,35 @@ with tracer.run() as run:
 valid, err = run.verify()   # cryptographic proof the chain is intact
 ```
 
+### LangChain / LangGraph integration
+
+```python
+from svitch.langchain import SvitchCallbackHandler
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import HumanMessage
+
+# Attach once — every LLM call and tool use is traced automatically
+handler = SvitchCallbackHandler(agent_id="loan-processor-v2")
+llm = ChatOpenAI(model="gpt-4o", callbacks=[handler])
+
+# PII is redacted before it hits the audit trail
+llm.invoke([HumanMessage(content="Loan for Aadhaar 9876 5432 1098")])
+```
+
+**LangGraph** — pass at invoke time:
+
+```python
+# Works with any LangGraph workflow
+result = graph.invoke(
+    {"messages": [HumanMessage(content="...")]},
+    config={"callbacks": [handler]},
+)
+```
+
+The handler records every LLM call, tool invocation, and agent decision as a
+hash-chained audit event. PII is redacted before logging — Aadhaar, IBAN, SSN,
+credit cards, and all other detected entity types are replaced with `[ENTITY_TYPE]`.
+
 ### TypeScript / Node.js
 
 ```typescript
@@ -255,7 +284,7 @@ GDPR and HIPAA guides coming soon.
 - [x] Compliance dashboard — [svitch.ai/dashboard](https://svitch.ai/dashboard)
 - [x] GDPR mode — IBAN, UK NIN, EU passport, credit cards (Luhn-validated)
 - [x] HIPAA mode — SSN, US phone, MRN, NPI
-- [ ] LangGraph / LangChain native integration
+- [x] LangChain / LangGraph native integration — `SvitchCallbackHandler`
 - [ ] Private inference enclave — air-gapped Llama/Mistral
 - [ ] OpenTelemetry-compatible agent spans
 - [ ] DPDP-AI Compliance Spec v1.0 — open standard
