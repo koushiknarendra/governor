@@ -1,0 +1,815 @@
+{
+  "$schema": "https://svitch.ai/schemas/dpdp-ai/v1",
+  "spec_id": "DPDP-AI-SPEC-001",
+  "version": "1.0.0",
+  "title": "DPDP-AI Compliance Specification v1.0",
+  "description": "Machine-readable specification defining what the Digital Personal Data Protection Act, 2023 requires from AI systems that process personal data of Indian data principals. Each control maps to an Act section, carries a verifiable assertion, and is linked to a penalty tier.",
+  "authors": ["Svitch (https://svitch.ai)"],
+  "license": "CC-BY-4.0",
+  "effective_date": "2025-01-01",
+  "jurisdiction": "IN",
+  "regulation": {
+    "name": "Digital Personal Data Protection Act, 2023",
+    "short_name": "DPDP Act",
+    "gazette_reference": "No. 22 of 2023 — The Gazette of India, Extraordinary, Part II, Section 1",
+    "notified_date": "2023-08-11",
+    "enforcement_date": "2027-05-13",
+    "enforced_by": "Data Protection Board of India (DPBI)",
+    "url": "https://www.meity.gov.in/content/digital-personal-data-protection-act-2023"
+  },
+  "penalty_tiers": [
+    {
+      "tier": 1,
+      "max_inr": 2500000000,
+      "max_usd_approx": 30000000,
+      "description": "Failure to implement reasonable security safeguards (§8(5))"
+    },
+    {
+      "tier": 2,
+      "max_inr": 2000000000,
+      "max_usd_approx": 24000000,
+      "description": "Failure to notify breach to DPBI or data principal (§8(6))"
+    },
+    {
+      "tier": 3,
+      "max_inr": 1500000000,
+      "max_usd_approx": 18000000,
+      "description": "Non-compliance with obligations for processing children's data (§9)"
+    },
+    {
+      "tier": 4,
+      "max_inr": 1000000000,
+      "max_usd_approx": 12000000,
+      "description": "Non-compliance with additional SDF obligations (§10)"
+    },
+    {
+      "tier": 5,
+      "max_inr": 500000000,
+      "max_usd_approx": 6000000,
+      "description": "Non-compliance with data principal rights, consent, purpose limitation (§§4–8, 11–14)"
+    }
+  ],
+  "controls": [
+    {
+      "id": "DPDP-AI-001",
+      "category": "consent",
+      "title": "Obtain valid consent before AI processes personal data",
+      "section": "§6",
+      "requirement_level": "MUST",
+      "applies_to": ["all_ai_systems"],
+      "description": "Before any personal data of an Indian data principal is submitted to an LLM prompt, agent context, or RAG pipeline, a valid consent record MUST exist. Consent must be free, specific, informed, unconditional, and unambiguous.",
+      "assertions": [
+        "consent_record_exists_before_processing",
+        "consent_is_purpose_specific",
+        "consent_was_not_bundled_with_other_agreements",
+        "consent_timestamp_precedes_processing_timestamp"
+      ],
+      "implementation": {
+        "svitch_feature": "consent-ledger",
+        "api_endpoint": "/consent/grant",
+        "verification_endpoint": "/consent/{id}/verify",
+        "sdk_method": "svitch.consent.grant(data_principal_id, purpose, timestamp)"
+      },
+      "penalty_tier": 5,
+      "audit_event_type": "consent_grant"
+    },
+    {
+      "id": "DPDP-AI-002",
+      "category": "consent",
+      "title": "Provide notice before collecting consent",
+      "section": "§5",
+      "requirement_level": "MUST",
+      "applies_to": ["all_ai_systems"],
+      "description": "The data fiduciary MUST provide a notice specifying: (a) what personal data is being collected, (b) the purpose of processing, (c) how the data principal can withdraw consent, (d) how to exercise grievance redressal, before or at the time of seeking consent.",
+      "assertions": [
+        "notice_provided_before_consent",
+        "notice_contains_purpose",
+        "notice_contains_data_categories",
+        "notice_contains_withdrawal_mechanism",
+        "notice_contains_grievance_contact",
+        "notice_available_in_english_or_scheduled_language"
+      ],
+      "implementation": {
+        "svitch_feature": "consent-ledger",
+        "api_endpoint": "/consent/notice",
+        "sdk_method": "svitch.consent.send_notice(data_principal_id, notice_payload)"
+      },
+      "penalty_tier": 5,
+      "audit_event_type": "consent_notice_sent"
+    },
+    {
+      "id": "DPDP-AI-003",
+      "category": "consent",
+      "title": "Support consent withdrawal and downstream deletion",
+      "section": "§6(4)",
+      "requirement_level": "MUST",
+      "applies_to": ["all_ai_systems"],
+      "description": "Data principals MUST be able to withdraw consent at any time. Withdrawal must be as easy as giving consent. After withdrawal, the data fiduciary MUST stop processing and notify all data processors (including LLM API vendors) to delete the data principal's personal data.",
+      "assertions": [
+        "withdrawal_mechanism_exists",
+        "withdrawal_is_as_easy_as_consent",
+        "processing_stops_immediately_on_withdrawal",
+        "downstream_processors_notified_within_reasonable_time"
+      ],
+      "implementation": {
+        "svitch_feature": "consent-ledger",
+        "api_endpoint": "/consent/{id}/withdraw",
+        "sdk_method": "svitch.consent.withdraw(data_principal_id)"
+      },
+      "penalty_tier": 5,
+      "audit_event_type": "consent_withdrawal"
+    },
+    {
+      "id": "DPDP-AI-004",
+      "category": "data_minimisation",
+      "title": "Redact PII from LLM prompts before transmission",
+      "section": "§8(3)",
+      "requirement_level": "MUST",
+      "applies_to": ["all_ai_systems"],
+      "description": "Only personal data necessary for the specified purpose may be processed. Before sending any text to an LLM API, the data fiduciary MUST detect and redact personal data identifiers not required by the prompt's purpose. The redacted tokens must be reversibly mapped for response reconstruction.",
+      "assertions": [
+        "pii_detected_before_llm_api_call",
+        "unnecessary_pii_redacted_from_prompt",
+        "redaction_is_logged_in_audit_trail",
+        "zero_pii_bytes_transmitted_to_llm_vendor_beyond_necessity"
+      ],
+      "pii_entity_types_covered": [
+        "AADHAAR", "AADHAAR_MASKED", "PAN", "UPI_ID", "IFSC",
+        "MOBILE_IN", "GST", "BANK_ACCOUNT", "VOTER_ID",
+        "IBAN", "UK_NIN", "CREDIT_CARD", "EU_PASSPORT",
+        "SSN_US", "US_PHONE", "MRN", "NPI",
+        "EMAIL", "IPV4", "IPV6", "PHONE_INTL"
+      ],
+      "implementation": {
+        "svitch_feature": "pii-shield",
+        "api_endpoint": "/redact",
+        "sdk_method": "svitch.redact(text)",
+        "sdk_wrap": "svitch.wrap(llm_client)"
+      },
+      "penalty_tier": 1,
+      "audit_event_type": "pii_redaction"
+    },
+    {
+      "id": "DPDP-AI-005",
+      "category": "data_minimisation",
+      "title": "Purpose limitation for AI-processed personal data",
+      "section": "§4(1)(b)",
+      "requirement_level": "MUST",
+      "applies_to": ["all_ai_systems"],
+      "description": "Personal data submitted to an AI system may only be processed for the purpose for which consent was obtained. Using personal data from one AI workflow (e.g., loan assessment) to train or fine-tune a model for a different purpose (e.g., marketing) without fresh consent is prohibited.",
+      "assertions": [
+        "processing_purpose_matches_consented_purpose",
+        "personal_data_not_used_for_model_training_without_consent",
+        "purpose_is_logged_at_data_access_time"
+      ],
+      "implementation": {
+        "svitch_feature": "agent-tracer",
+        "api_endpoint": "/runs/{id}/events",
+        "sdk_method": "run.data_access(source, fields_accessed, purpose, data_principal_id)"
+      },
+      "penalty_tier": 5,
+      "audit_event_type": "data_access"
+    },
+    {
+      "id": "DPDP-AI-006",
+      "category": "audit_trail",
+      "title": "Maintain tamper-evident audit trail for every AI decision",
+      "section": "§8(5)",
+      "requirement_level": "MUST",
+      "applies_to": ["all_ai_systems"],
+      "description": "Every AI decision involving personal data — including LLM calls, tool invocations, intermediate reasoning steps, and final outcomes — MUST be recorded in a tamper-evident append-only log. Each event must include a cryptographic hash of the previous event (hash chain), making any modification or deletion detectable.",
+      "assertions": [
+        "every_llm_call_is_logged",
+        "every_tool_call_is_logged",
+        "every_decision_is_logged",
+        "log_is_append_only",
+        "log_is_hash_chained",
+        "log_chain_is_verifiable"
+      ],
+      "audit_event_schema": {
+        "run_id": "UUID — unique identifier for one agent execution",
+        "agent_id": "string — identifies the agent type or workflow",
+        "event_type": "enum: data_access | llm_call | tool_call | decision | human_checkpoint | pii_redaction",
+        "timestamp": "ISO 8601 datetime",
+        "data": "object — event-specific payload (see event_type_schemas)",
+        "pii_types": "array<string> — entity types redacted in this event",
+        "pii_redacted": "boolean — whether PII was redacted before logging",
+        "prev_hash": "sha256 — hash of the previous event in the run chain",
+        "hash": "sha256 — hash of this event including prev_hash"
+      },
+      "implementation": {
+        "svitch_feature": "agent-tracer",
+        "api_endpoint": "/runs/{id}/events",
+        "verify_endpoint": "/runs/{id}/verify",
+        "sdk_method": "SvitchTracer(agent_id).run()",
+        "langchain_integration": "SvitchCallbackHandler(agent_id)"
+      },
+      "penalty_tier": 1,
+      "audit_event_type": "all"
+    },
+    {
+      "id": "DPDP-AI-007",
+      "category": "audit_trail",
+      "title": "Human oversight checkpoint for high-stakes AI decisions",
+      "section": "§8(5)",
+      "requirement_level": "SHOULD",
+      "applies_to": ["high_risk_ai_systems"],
+      "high_risk_examples": [
+        "loan approval or rejection",
+        "insurance claim decisions",
+        "medical diagnosis assistance",
+        "credit scoring",
+        "employment screening",
+        "benefit eligibility determination"
+      ],
+      "description": "For AI decisions with material impact on a data principal — such as credit decisions, insurance claims, or medical recommendations — a human reviewer MUST have the opportunity to review and approve the decision before it is acted upon. The human checkpoint must be logged in the audit trail with reviewer identity and decision.",
+      "assertions": [
+        "human_reviewer_identified",
+        "human_decision_logged_before_action",
+        "reviewer_can_override_ai_recommendation",
+        "checkpoint_timestamp_recorded"
+      ],
+      "implementation": {
+        "svitch_feature": "agent-tracer",
+        "sdk_method": "run.human_checkpoint(question, approved, reviewer_id)",
+        "rbi_free_alignment": "RBI FREE Framework — Human Oversight (HO) requirement"
+      },
+      "penalty_tier": 1,
+      "audit_event_type": "human_checkpoint"
+    },
+    {
+      "id": "DPDP-AI-008",
+      "category": "data_principal_rights",
+      "title": "Right to access AI processing records",
+      "section": "§11",
+      "requirement_level": "MUST",
+      "applies_to": ["all_ai_systems"],
+      "description": "A data principal MUST be able to request: (a) a summary of what personal data was processed by AI systems, (b) the identities of all data processors (LLM API vendors) to whom their data was transmitted, (c) the purposes for which their data was processed. This information MUST be provided within the timeframe specified by the DPBI.",
+      "assertions": [
+        "access_request_mechanism_exists",
+        "response_within_regulatory_timeframe",
+        "response_includes_data_categories",
+        "response_includes_processor_identities",
+        "response_includes_processing_purposes"
+      ],
+      "implementation": {
+        "svitch_feature": "compliance-engine",
+        "api_endpoint": "/report/data-principal/{id}",
+        "sdk_method": "svitch.compliance.data_principal_report(data_principal_id)"
+      },
+      "penalty_tier": 5,
+      "audit_event_type": "access_request"
+    },
+    {
+      "id": "DPDP-AI-009",
+      "category": "data_principal_rights",
+      "title": "Right to correction and erasure",
+      "section": "§12–13",
+      "requirement_level": "MUST",
+      "applies_to": ["all_ai_systems"],
+      "description": "Data principals MUST be able to request correction of inaccurate personal data and erasure of personal data when consent is withdrawn or the purpose is fulfilled. Erasure requests must propagate to all downstream data processors, including LLM vendor fine-tuning data, vector databases, and RAG stores.",
+      "assertions": [
+        "correction_mechanism_exists",
+        "erasure_mechanism_exists",
+        "erasure_propagates_to_downstream_processors",
+        "erasure_confirmed_within_regulatory_timeframe",
+        "audit_trail_of_erasure_maintained"
+      ],
+      "implementation": {
+        "svitch_feature": "consent-ledger",
+        "api_endpoint": "/data-principal/{id}/erase",
+        "sdk_method": "svitch.compliance.erase(data_principal_id)"
+      },
+      "penalty_tier": 5,
+      "audit_event_type": "erasure_request"
+    },
+    {
+      "id": "DPDP-AI-010",
+      "category": "data_principal_rights",
+      "title": "Grievance redressal for AI decisions",
+      "section": "§13",
+      "requirement_level": "MUST",
+      "applies_to": ["all_ai_systems"],
+      "description": "A data fiduciary deploying AI systems that affect data principals MUST designate a Grievance Officer and provide a mechanism for data principals to raise complaints about AI decisions. The Grievance Officer must acknowledge complaints within prescribed time and resolve them within the timeframe set by the DPBI.",
+      "assertions": [
+        "grievance_officer_designated",
+        "grievance_contact_published",
+        "complaint_acknowledgement_within_72_hours",
+        "resolution_within_regulatory_timeframe"
+      ],
+      "implementation": {
+        "note": "Organisational/process control — not automated. Must be reflected in privacy notice."
+      },
+      "penalty_tier": 5,
+      "audit_event_type": "grievance_submission"
+    },
+    {
+      "id": "DPDP-AI-011",
+      "category": "security",
+      "title": "Reasonable security safeguards for AI-processed personal data",
+      "section": "§8(5)",
+      "requirement_level": "MUST",
+      "applies_to": ["all_ai_systems"],
+      "description": "The data fiduciary MUST implement appropriate technical and organisational measures to prevent personal data breaches. For AI systems this includes: (a) encryption of personal data in transit (TLS 1.2+) and at rest (AES-256), (b) PII redaction before LLM API calls, (c) access controls on audit logs, (d) regular security assessments.",
+      "assertions": [
+        "tls_12_or_higher_for_api_calls",
+        "personal_data_encrypted_at_rest",
+        "pii_redacted_before_external_api_calls",
+        "audit_logs_access_controlled",
+        "security_assessment_conducted_annually"
+      ],
+      "implementation": {
+        "svitch_feature": "pii-shield",
+        "note": "svitch.wrap() ensures no PII reaches external LLM APIs. Encryption and access control are infrastructure responsibilities."
+      },
+      "penalty_tier": 1,
+      "audit_event_type": "security_assessment"
+    },
+    {
+      "id": "DPDP-AI-012",
+      "category": "security",
+      "title": "Data breach detection and notification",
+      "section": "§8(6)",
+      "requirement_level": "MUST",
+      "applies_to": ["all_ai_systems"],
+      "description": "In the event of a personal data breach affecting AI-processed data, the data fiduciary MUST: (a) notify the Data Protection Board of India within the timeframe specified by the DPBI, (b) notify each affected data principal, (c) document the nature of the breach, data categories affected, and remediation steps.",
+      "assertions": [
+        "breach_detection_mechanism_exists",
+        "dpbi_notification_within_prescribed_timeframe",
+        "data_principal_notification_within_prescribed_timeframe",
+        "breach_documented_with_data_categories_and_count"
+      ],
+      "implementation": {
+        "note": "Organisational control with technical dependency on audit trail for breach scope determination.",
+        "svitch_feature": "agent-tracer",
+        "sdk_method": "run.verify() — hash chain verification to detect tampering"
+      },
+      "penalty_tier": 2,
+      "audit_event_type": "breach_notification"
+    },
+    {
+      "id": "DPDP-AI-013",
+      "category": "vendor_management",
+      "title": "Data processor agreement with LLM API vendors",
+      "section": "§8(2)",
+      "requirement_level": "MUST",
+      "applies_to": ["all_ai_systems"],
+      "description": "Any LLM API provider (OpenAI, Anthropic, Google, AWS Bedrock, etc.) to whom personal data is transmitted is a Data Processor under the DPDP Act. A valid Data Processing Agreement (DPA) MUST be in place before transmitting personal data. The DPA must restrict the processor from using data for training without explicit consent.",
+      "assertions": [
+        "dpa_exists_with_each_llm_vendor",
+        "dpa_prohibits_training_without_consent",
+        "dpa_requires_breach_notification",
+        "dpa_specifies_data_deletion_on_termination",
+        "processor_list_is_disclosed_in_privacy_notice"
+      ],
+      "implementation": {
+        "note": "Legal/contractual control. Technical mitigation: svitch.wrap() reduces PII exposure to vendors.",
+        "best_practice": "Use enterprise DPA with zero-retention clauses or deploy private inference (Svitch Enclave)"
+      },
+      "penalty_tier": 5,
+      "audit_event_type": "processor_agreement"
+    },
+    {
+      "id": "DPDP-AI-014",
+      "category": "vendor_management",
+      "title": "Cross-border transfer restriction for AI prompts",
+      "section": "§16",
+      "requirement_level": "CONDITIONAL",
+      "condition": "Applies when LLM API servers are outside India",
+      "applies_to": ["all_ai_systems_using_foreign_llm_apis"],
+      "description": "Transfer of personal data outside India is permitted only to countries on the DPBI's whitelist. Until the whitelist is published, data fiduciaries must conduct transfer impact assessments for personal data sent to US/EU LLM APIs. Technical mitigation: ensure no personal data is included in prompts sent to foreign APIs.",
+      "assertions": [
+        "transfer_destination_is_whitelisted_OR_transfer_impact_assessment_exists",
+        "no_sensitive_personal_data_in_cross_border_prompts",
+        "transfer_is_documented_in_records_of_processing"
+      ],
+      "implementation": {
+        "svitch_feature": "pii-shield",
+        "note": "svitch.wrap() with locale='in' ensures Indian PII is redacted before prompts reach foreign APIs.",
+        "sdk_method": "svitch.wrap(client, locale='in')"
+      },
+      "penalty_tier": 5,
+      "audit_event_type": "cross_border_transfer"
+    },
+    {
+      "id": "DPDP-AI-015",
+      "category": "children",
+      "title": "Verifiable parental consent for AI processing of children's data",
+      "section": "§9(1)",
+      "requirement_level": "MUST",
+      "applies_to": ["ai_systems_accessible_to_minors"],
+      "description": "Before processing personal data of a child (under 18) through an AI system, verifiable parental consent MUST be obtained. The age verification mechanism must reliably determine that the user is a minor before any data processing begins.",
+      "assertions": [
+        "age_verification_before_processing",
+        "parental_consent_obtained_for_minors",
+        "parental_consent_record_retained",
+        "minor_status_checked_before_each_ai_session"
+      ],
+      "implementation": {
+        "svitch_feature": "consent-ledger",
+        "sdk_method": "svitch.consent.grant(data_principal_id, purpose, is_minor=True, guardian_id=...)"
+      },
+      "penalty_tier": 3,
+      "audit_event_type": "parental_consent_grant"
+    },
+    {
+      "id": "DPDP-AI-016",
+      "category": "children",
+      "title": "No behavioural tracking or targeting of children via AI",
+      "section": "§9(3)",
+      "requirement_level": "MUST",
+      "applies_to": ["ai_systems_accessible_to_minors"],
+      "description": "AI systems MUST NOT perform behavioural monitoring, tracking, or targeted advertising directed at children. This includes: personalisation models trained on children's data, recommendation algorithms that profile children, and conversational AI that elicits personal information from children.",
+      "assertions": [
+        "no_behavioural_profiling_for_minors",
+        "no_targeted_recommendations_for_minors",
+        "minor_flag_propagated_through_ai_pipeline",
+        "ai_output_not_used_to_build_minor_profile"
+      ],
+      "implementation": {
+        "note": "Requires minor_flag to be passed through all AI pipeline stages.",
+        "svitch_feature": "agent-tracer",
+        "sdk_method": "run.data_access(source, fields, purpose, data_principal_id, is_minor=True)"
+      },
+      "penalty_tier": 3,
+      "audit_event_type": "minor_data_access"
+    },
+    {
+      "id": "DPDP-AI-017",
+      "category": "sdf",
+      "title": "Data Protection Impact Assessment for AI systems",
+      "section": "§10(2)(a)",
+      "requirement_level": "MUST",
+      "applies_to": ["significant_data_fiduciaries"],
+      "description": "Significant Data Fiduciaries (SDFs) MUST conduct a Data Protection Impact Assessment (DPIA) before deploying any new AI system that processes personal data at scale. The DPIA must assess: (a) necessity and proportionality of processing, (b) risks to data principal rights, (c) technical and organisational safeguards.",
+      "assertions": [
+        "dpia_conducted_before_deployment",
+        "dpia_covers_necessity_and_proportionality",
+        "dpia_identifies_risks_to_data_principal_rights",
+        "dpia_documents_safeguards",
+        "dpia_reviewed_annually_or_on_material_change"
+      ],
+      "implementation": {
+        "svitch_feature": "compliance-engine",
+        "api_endpoint": "/report/dpdp-dpia",
+        "sdk_method": "svitch.compliance.generate_dpia(system_description, data_flows)"
+      },
+      "penalty_tier": 4,
+      "audit_event_type": "dpia_completion"
+    },
+    {
+      "id": "DPDP-AI-018",
+      "category": "sdf",
+      "title": "Annual data audit for AI processing activities",
+      "section": "§10(2)(b)",
+      "requirement_level": "MUST",
+      "applies_to": ["significant_data_fiduciaries"],
+      "description": "SDFs MUST conduct an annual audit of their AI data processing activities by an independent auditor. The audit must cover: accuracy of consent records, completeness of audit trails, effectiveness of PII redaction, and compliance with data principal rights obligations.",
+      "assertions": [
+        "annual_audit_conducted",
+        "audit_by_independent_auditor",
+        "audit_covers_consent_records",
+        "audit_covers_audit_trail_integrity",
+        "audit_report_submitted_to_dpbi"
+      ],
+      "implementation": {
+        "svitch_feature": "compliance-engine",
+        "api_endpoint": "/report/annual-audit",
+        "sdk_method": "svitch.compliance.generate_audit_report(year)"
+      },
+      "penalty_tier": 4,
+      "audit_event_type": "annual_audit"
+    },
+    {
+      "id": "DPDP-AI-019",
+      "category": "sdf",
+      "title": "Appoint Data Protection Officer",
+      "section": "§10(2)(c)",
+      "requirement_level": "MUST",
+      "applies_to": ["significant_data_fiduciaries"],
+      "description": "SDFs operating AI systems that process personal data at scale MUST appoint a Data Protection Officer (DPO) who: (a) is accountable to the board, (b) is the point of contact for the DPBI, (c) advises on DPDP compliance for AI systems, (d) is accessible to data principals for grievances.",
+      "assertions": [
+        "dpo_appointed",
+        "dpo_contact_published",
+        "dpo_reports_to_board",
+        "dpo_contact_accessible_to_data_principals"
+      ],
+      "implementation": {
+        "note": "Organisational/HR control. Contact details must appear in all privacy notices."
+      },
+      "penalty_tier": 4,
+      "audit_event_type": "dpo_appointment"
+    }
+  ],
+  "pii_entity_types": {
+    "india": [
+      {
+        "type": "AADHAAR",
+        "description": "12-digit Aadhaar number issued by UIDAI",
+        "sensitive_personal_data": true,
+        "examples": ["2345 6789 0123", "XXXX XXXX 0123"],
+        "regex_note": "Matches with spaces, hyphens, or no separator. Excludes masked variants (handled by AADHAAR_MASKED)."
+      },
+      {
+        "type": "AADHAAR_MASKED",
+        "description": "Masked Aadhaar (first 8 digits as X/*)",
+        "sensitive_personal_data": true,
+        "examples": ["XXXX XXXX 0123", "**** **** 0123"]
+      },
+      {
+        "type": "PAN",
+        "description": "10-character Permanent Account Number issued by Income Tax Department",
+        "sensitive_personal_data": true,
+        "examples": ["ABCDE1234F"],
+        "format": "[A-Z]{5}[0-9]{4}[A-Z]"
+      },
+      {
+        "type": "UPI_ID",
+        "description": "Unified Payments Interface ID",
+        "sensitive_personal_data": false,
+        "examples": ["rahul@okicici", "9876543210@paytm"]
+      },
+      {
+        "type": "IFSC",
+        "description": "Indian Financial System Code",
+        "sensitive_personal_data": false,
+        "examples": ["HDFC0001234"],
+        "format": "[A-Z]{4}0[A-Z0-9]{6}"
+      },
+      {
+        "type": "MOBILE_IN",
+        "description": "Indian mobile phone number (6xxx to 9xxx series)",
+        "sensitive_personal_data": false,
+        "examples": ["9876543210", "+91 98765 43210"]
+      },
+      {
+        "type": "GST",
+        "description": "Goods and Services Tax Identification Number",
+        "sensitive_personal_data": false,
+        "examples": ["22ABCDE1234F1Z5"]
+      },
+      {
+        "type": "BANK_ACCOUNT",
+        "description": "Indian bank account number (9-18 digits, context-anchored)",
+        "sensitive_personal_data": true,
+        "examples": ["123456789012"]
+      },
+      {
+        "type": "VOTER_ID",
+        "description": "Electoral Photo Identity Card (EPIC) number",
+        "sensitive_personal_data": true,
+        "examples": ["ABC1234567"],
+        "format": "[A-Z]{3}[0-9]{7}"
+      }
+    ],
+    "gdpr_eu": [
+      {
+        "type": "IBAN",
+        "description": "International Bank Account Number (ISO 13616)",
+        "sensitive_personal_data": true,
+        "examples": ["GB29NWBK60161331926819", "DE89370400440532013000"],
+        "note": "Anchored to known country codes to minimise false positives"
+      },
+      {
+        "type": "UK_NIN",
+        "description": "UK National Insurance Number",
+        "sensitive_personal_data": true,
+        "examples": ["AB123456D"],
+        "format": "[A-CEGHJ-PR-TW-Z][A-CEGHJ-NPR-TW-Z][0-9]{6}[A-D]"
+      },
+      {
+        "type": "EU_PASSPORT",
+        "description": "Generic EU passport number (keyword-anchored)",
+        "sensitive_personal_data": true,
+        "examples": ["P12345678"]
+      },
+      {
+        "type": "CREDIT_CARD",
+        "description": "Payment card number — Visa, Mastercard, Amex, Discover (Luhn-validated)",
+        "sensitive_personal_data": true,
+        "examples": ["4532015112830366", "378282246310005"]
+      }
+    ],
+    "hipaa_us": [
+      {
+        "type": "SSN_US",
+        "description": "US Social Security Number",
+        "sensitive_personal_data": true,
+        "examples": ["123-45-6789"],
+        "format": "[0-9]{3}-[0-9]{2}-[0-9]{4}",
+        "exclusions": "000, 666, 900-999 area codes excluded"
+      },
+      {
+        "type": "US_PHONE",
+        "description": "NANP phone number with +1 country code",
+        "sensitive_personal_data": false,
+        "examples": ["+1-800-555-1234"]
+      },
+      {
+        "type": "MRN",
+        "description": "Medical Record Number (keyword-anchored)",
+        "sensitive_personal_data": true,
+        "examples": ["MRN: P123456"]
+      },
+      {
+        "type": "NPI",
+        "description": "National Provider Identifier (10-digit, Luhn-validated with 80840 prefix)",
+        "sensitive_personal_data": false,
+        "examples": ["NPI: 1234567893"]
+      }
+    ],
+    "global": [
+      {
+        "type": "EMAIL",
+        "description": "Email address",
+        "sensitive_personal_data": false,
+        "examples": ["user@example.com"]
+      },
+      {
+        "type": "IPV4",
+        "description": "IPv4 address",
+        "sensitive_personal_data": false,
+        "examples": ["192.168.1.1"]
+      },
+      {
+        "type": "IPV6",
+        "description": "IPv6 address",
+        "sensitive_personal_data": false,
+        "examples": ["2001:0db8:85a3:0000:0000:8a2e:0370:7334"]
+      },
+      {
+        "type": "PHONE_INTL",
+        "description": "International phone number (E.164 format)",
+        "sensitive_personal_data": false,
+        "examples": ["+447911123456"]
+      }
+    ]
+  },
+  "compliance_modes": {
+    "india": {
+      "label": "India (DPDP Act 2023)",
+      "entity_groups": ["india", "global"],
+      "required_controls": [
+        "DPDP-AI-001", "DPDP-AI-002", "DPDP-AI-003", "DPDP-AI-004",
+        "DPDP-AI-005", "DPDP-AI-006", "DPDP-AI-008", "DPDP-AI-009",
+        "DPDP-AI-010", "DPDP-AI-011", "DPDP-AI-012", "DPDP-AI-013"
+      ]
+    },
+    "eu": {
+      "label": "EU (GDPR)",
+      "entity_groups": ["gdpr_eu", "global"],
+      "note": "Full GDPR mapping shipped in gdpr-ai-v1.json",
+      "required_controls": ["DPDP-AI-004", "DPDP-AI-006", "DPDP-AI-011"]
+    },
+    "us": {
+      "label": "US (HIPAA)",
+      "entity_groups": ["hipaa_us", "global"],
+      "note": "Full HIPAA mapping shipped in hipaa-ai-v1.json",
+      "required_controls": ["DPDP-AI-004", "DPDP-AI-006", "DPDP-AI-011"]
+    }
+  },
+  "audit_event_types": {
+    "consent_grant": {
+      "required_fields": ["data_principal_id", "purpose", "consent_version", "timestamp", "notice_id"],
+      "optional_fields": ["is_minor", "guardian_id", "expiry"]
+    },
+    "consent_notice_sent": {
+      "required_fields": ["data_principal_id", "notice_id", "delivery_channel", "timestamp"],
+      "optional_fields": ["language"]
+    },
+    "consent_withdrawal": {
+      "required_fields": ["data_principal_id", "consent_id", "timestamp"],
+      "optional_fields": ["reason"]
+    },
+    "data_access": {
+      "required_fields": ["source", "fields_accessed", "purpose", "timestamp"],
+      "optional_fields": ["data_principal_id", "is_minor"]
+    },
+    "llm_call": {
+      "required_fields": ["provider", "model", "prompt_hash", "response_hash", "pii_redacted", "timestamp"],
+      "optional_fields": ["pii_types_found", "latency_ms", "tokens_used"]
+    },
+    "tool_call": {
+      "required_fields": ["tool", "input_hash", "output_hash", "timestamp"],
+      "optional_fields": ["pii_types_found"]
+    },
+    "decision": {
+      "required_fields": ["reason", "outcome", "timestamp"],
+      "optional_fields": ["confidence", "model", "data_principal_id"]
+    },
+    "human_checkpoint": {
+      "required_fields": ["question", "reviewer_id", "approved", "timestamp"],
+      "optional_fields": ["notes", "override_reason"]
+    },
+    "pii_redaction": {
+      "required_fields": ["entity_types_found", "entity_count", "locale", "timestamp"],
+      "optional_fields": ["destination_provider"]
+    }
+  },
+  "rbi_free_framework_alignment": {
+    "description": "The Reserve Bank of India's Framework for Responsible and Ethical Enablement of AI (FREE Framework, 2024) applies to all BFSI entities. Controls mapped below.",
+    "pillars": [
+      {
+        "pillar": "Accountability",
+        "svitch_controls": ["DPDP-AI-006", "DPDP-AI-007", "DPDP-AI-017"],
+        "svitch_features": ["agent-tracer", "compliance-engine"]
+      },
+      {
+        "pillar": "Fairness",
+        "svitch_controls": ["DPDP-AI-005", "DPDP-AI-008"],
+        "svitch_features": ["compliance-engine"]
+      },
+      {
+        "pillar": "Transparency",
+        "svitch_controls": ["DPDP-AI-001", "DPDP-AI-002", "DPDP-AI-006", "DPDP-AI-008"],
+        "svitch_features": ["consent-ledger", "agent-tracer"]
+      },
+      {
+        "pillar": "Privacy and Security",
+        "svitch_controls": ["DPDP-AI-004", "DPDP-AI-011", "DPDP-AI-012", "DPDP-AI-014"],
+        "svitch_features": ["pii-shield"]
+      },
+      {
+        "pillar": "Human Oversight",
+        "svitch_controls": ["DPDP-AI-007"],
+        "svitch_features": ["agent-tracer"]
+      }
+    ]
+  },
+  "implementation_checklist": [
+    {
+      "phase": "Before deployment",
+      "items": [
+        "✓ Conduct DPIA (required for SDFs, recommended for all)",
+        "✓ Sign DPAs with all LLM API vendors",
+        "✓ Designate Grievance Officer and DPO (SDFs)",
+        "✓ Draft privacy notice covering AI processing",
+        "✓ Integrate svitch.wrap() on all LLM clients",
+        "✓ Integrate SvitchTracer on all agent workflows",
+        "✓ Implement consent collection and storage",
+        "✓ Test PII redaction coverage with svitch.detect()",
+        "✓ Verify audit trail hash chain integrity"
+      ]
+    },
+    {
+      "phase": "At runtime",
+      "items": [
+        "✓ Check consent before processing personal data",
+        "✓ Redact PII before all LLM API calls",
+        "✓ Log every data access, LLM call, and decision",
+        "✓ Route high-stakes decisions through human checkpoint",
+        "✓ Block processing for minors without parental consent"
+      ]
+    },
+    {
+      "phase": "Ongoing",
+      "items": [
+        "✓ Monthly: verify audit trail chain integrity",
+        "✓ Quarterly: review and rotate LLM vendor DPAs",
+        "✓ Annually: conduct data audit (mandatory for SDFs)",
+        "✓ On demand: generate DPIA report for DPBI",
+        "✓ Within 72h of breach: notify DPBI and affected principals"
+      ]
+    }
+  ],
+  "submission_targets": [
+    {
+      "organisation": "IndiaAI Mission",
+      "url": "https://indiaai.gov.in",
+      "submission_type": "Public comment / open standard",
+      "contact": "AI governance and policy team"
+    },
+    {
+      "organisation": "Data Security Council of India (DSCI)",
+      "url": "https://www.dsci.in",
+      "submission_type": "Industry standard contribution",
+      "contact": "AI governance working group"
+    },
+    {
+      "organisation": "Bureau of Indian Standards (BIS)",
+      "url": "https://www.bis.gov.in",
+      "submission_type": "Technical committee submission",
+      "contact": "ET 65 — Information Technology committee"
+    },
+    {
+      "organisation": "Reserve Bank of India",
+      "url": "https://www.rbi.org.in",
+      "submission_type": "Alignment with FREE Framework",
+      "contact": "Department of Regulation — FinTech"
+    }
+  ],
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2026-06-17",
+      "changes": [
+        "Initial release — 19 controls covering consent, data minimisation, audit trail, data principal rights, security, vendor management, children's data, and SDF obligations",
+        "Mapped to DPDP Act sections §4–16",
+        "Penalty tier assigned to each control",
+        "PII entity type registry: 20 types across India, EU, US, Global",
+        "RBI FREE Framework alignment documented",
+        "Audit event schema defined"
+      ]
+    }
+  ]
+}

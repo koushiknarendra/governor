@@ -285,9 +285,9 @@ GDPR and HIPAA guides coming soon.
 - [x] GDPR mode — IBAN, UK NIN, EU passport, credit cards (Luhn-validated)
 - [x] HIPAA mode — SSN, US phone, MRN, NPI
 - [x] LangChain / LangGraph native integration — `SvitchCallbackHandler`
+- [x] DPDP-AI Compliance Spec v1.0 — machine-readable open standard ([spec/dpdp-ai-v1.json](spec/dpdp-ai-v1.json))
 - [ ] Private inference enclave — air-gapped Llama/Mistral
 - [ ] OpenTelemetry-compatible agent spans
-- [ ] DPDP-AI Compliance Spec v1.0 — open standard
 
 ---
 
