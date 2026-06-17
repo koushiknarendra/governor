@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "svitch"
-version = "0.1.1"
+version = "0.1.2"
 description = "DPDP-compliant AI data security — PII detection, redaction, and agent audit trails for Indian enterprises."
 readme = "README.md"
 license = { text = "Apache-2.0" }
