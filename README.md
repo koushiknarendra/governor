@@ -140,6 +140,24 @@ const client = wrap(new OpenAI({ apiKey: process.env.OPENAI_API_KEY }));
 | `BANK_ACCOUNT` | 9–18 digit account numbers |
 | `GST` | `22AAAAA0000A1Z5` |
 
+**GDPR / EU**
+
+| Type | Example |
+|------|---------|
+| `IBAN` | `GB29NWBK60161331926819`, `DE89370400440532013000` |
+| `UK_NIN` | `AB123456D` |
+| `EU_PASSPORT` | `P12345678` (keyword-anchored) |
+| `CREDIT_CARD` | `4532015112830366` (Luhn-validated) |
+
+**HIPAA / US**
+
+| Type | Example |
+|------|---------|
+| `SSN_US` | `123-45-6789` (invalid prefixes excluded) |
+| `US_PHONE` | `+1-800-555-1234` |
+| `MRN` | `P123456` (keyword-anchored) |
+| `NPI` | `1234567893` (Luhn-validated, keyword-anchored) |
+
 **Global**
 
 | Type | Example |
@@ -235,8 +253,9 @@ GDPR and HIPAA guides coming soon.
 - [x] RBI FREE Framework self-assessment
 - [x] Consent ledger — append-only, cryptographically verifiable
 - [x] Compliance dashboard — [svitch.ai/dashboard](https://svitch.ai/dashboard)
+- [x] GDPR mode — IBAN, UK NIN, EU passport, credit cards (Luhn-validated)
+- [x] HIPAA mode — SSN, US phone, MRN, NPI
 - [ ] LangGraph / LangChain native integration
-- [ ] GDPR + HIPAA mode
 - [ ] Private inference enclave — air-gapped Llama/Mistral
 - [ ] OpenTelemetry-compatible agent spans
 - [ ] DPDP-AI Compliance Spec v1.0 — open standard

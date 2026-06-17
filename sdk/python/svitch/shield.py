@@ -77,6 +77,69 @@ _BANK_ACCOUNT = re.compile(
 _EMAIL = re.compile(r'\b[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}\b')
 _IPV4 = re.compile(r'\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b')
 
+# EU patterns
+_IBAN_CC = (
+    r'GB|DE|FR|ES|IT|NL|BE|AT|CH|SE|DK|NO|FI|PL|PT|GR|IE|CZ|HU|RO|'
+    r'BG|HR|SK|SI|LT|LV|EE|LU|CY|MT|IS|LI|MC|SM|VA|'
+    r'SA|AE|KW|QA|BH|JO|IL|TR|UA|RS|BA|MK|AL|MD|GE|'
+    r'AM|AZ|BY|KZ|TN|MA|MU|SC'
+)
+_IBAN = re.compile(
+    r'\b((?:' + _IBAN_CC + r')[0-9]{2}'
+    r'(?:[A-Z0-9]{4}\s?){2,7}[A-Z0-9]{1,4})\b',
+    re.ASCII,
+)
+_UK_NIN = re.compile(
+    r'\b(?!BG|GB|NK|KN|NT|TN|ZZ)'
+    r'[A-CEGHJ-PR-TW-Z][A-CEGHJ-NPR-TW-Z]'
+    r'[0-9]{6}'
+    r'[A-D]\b',
+    re.ASCII,
+)
+_EU_PASSPORT = re.compile(
+    r'(?i)(?:passport|pass(?:port)?\s*(?:number|no\.?|#))\s*:?\s*'
+    r'([A-Z]{1,2}[0-9]{6,8})\b',
+    re.ASCII,
+)
+_CARD_RAW = re.compile(
+    r'\b('
+    r'4[0-9]{12}(?:[0-9]{3})?'
+    r'|(?:5[1-5][0-9]{2}|222[1-9]|22[3-9][0-9]|2[3-6][0-9]{2}|27[01][0-9]|2720)[0-9]{12}'
+    r'|3[47][0-9]{13}'
+    r'|6(?:011|5[0-9]{2})[0-9]{12}'
+    r')\b',
+)
+
+# US/HIPAA patterns
+_SSN_FULL = re.compile(
+    r'\b(?!(?:000|666|9\d{2})[-\s])'
+    r'(?![\d]{3}[-\s]00[-\s])'
+    r'(?![\d]{3}[-\s]\d{2}[-\s]0000)'
+    r'(\d{3}[-\s]\d{2}[-\s]\d{4})\b',
+    re.ASCII,
+)
+_US_PHONE = re.compile(
+    r'(?<!\d)'
+    r'(\+1[-.\s]?(?:\(\d{3}\)[-.\s]?|\d{3}[-.\s]?)\d{3}[-.\s]?\d{4})'
+    r'(?!\d)',
+    re.ASCII,
+)
+_MRN = re.compile(
+    r'(?i)(?:mrn|medical\s+record\s+(?:number|no\.?|#)|patient\s+id)\s*:?\s*'
+    r'([A-Z0-9]{4,12})\b',
+    re.ASCII,
+)
+
+
+def _luhn(number: str) -> bool:
+    digits = [int(d) for d in number if d.isdigit()]
+    if len(digits) < 13:
+        return False
+    total = 0
+    for i, d in enumerate(reversed(digits)):
+        total += d if i % 2 == 0 else (d * 2 - 9 if d * 2 > 9 else d * 2)
+    return total % 10 == 0
+
 
 def _inline_detect(text: str) -> list[Entity]:
     entities: list[Entity] = []
@@ -95,6 +158,24 @@ def _inline_detect(text: str) -> list[Entity]:
     _add(_BANK_ACCOUNT, "BANK_ACCOUNT", 1)
     _add(_EMAIL, "EMAIL")
     _add(_IPV4, "IPV4")
+
+    # EU
+    for m in _IBAN.finditer(text):
+        entities.append(Entity(type="IBAN", value=m.group(1), start=m.start(1), end=m.end(1)))
+    _add(_UK_NIN, "UK_NIN")
+    for m in _EU_PASSPORT.finditer(text):
+        entities.append(Entity(type="EU_PASSPORT", value=m.group(1), start=m.start(1), end=m.end(1)))
+    for m in _CARD_RAW.finditer(text):
+        if _luhn(re.sub(r'\D', '', m.group(1))):
+            entities.append(Entity(type="CREDIT_CARD", value=m.group(1), start=m.start(1), end=m.end(1)))
+
+    # US / HIPAA
+    for m in _SSN_FULL.finditer(text):
+        entities.append(Entity(type="SSN_US", value=m.group(1), start=m.start(1), end=m.end(1)))
+    for m in _US_PHONE.finditer(text):
+        entities.append(Entity(type="US_PHONE", value=m.group(1), start=m.start(1), end=m.end(1)))
+    for m in _MRN.finditer(text):
+        entities.append(Entity(type="MRN", value=m.group(1), start=m.start(1), end=m.end(1)))
 
     entities.sort(key=lambda e: e.start)
     return entities
@@ -136,6 +217,14 @@ def _mask_entity(e: Entity) -> str:
     if e.type == "UPI_ID":
         parts = e.value.split("@")
         return f"XXXX@{parts[1]}" if len(parts) == 2 else "[UPI_ID]"
+    if e.type == "CREDIT_CARD":
+        digits = re.sub(r'\D', '', e.value)
+        return f"XXXX-XXXX-XXXX-{digits[-4:]}"
+    if e.type == "SSN_US":
+        parts = re.split(r'[-\s]', e.value)
+        return f"XXX-XX-{parts[-1]}" if len(parts) == 3 else "[SSN_US]"
+    if e.type == "IBAN":
+        return e.value[:4] + "XXXX" + e.value[-4:]
     return f"[{e.type}]"
 
 

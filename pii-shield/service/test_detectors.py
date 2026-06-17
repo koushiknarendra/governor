@@ -8,6 +8,8 @@ sys.path.insert(0, ".")
 
 from detectors.india import detect, redact
 from detectors.common import detect as detect_common
+from detectors.eu import detect as detect_eu
+from detectors.us import detect as detect_us
 from detectors import detect_all, redact_all
 
 
@@ -116,6 +118,68 @@ cases = [
         ["BANK_ACCOUNT"],
         "Account number: [BANK_ACCOUNT]",
     ),
+    # EU / GDPR
+    (
+        "IBAN (GB)",
+        "Bank: GB29NWBK60161331926819",
+        ["IBAN"],
+        "Bank: [IBAN]",
+    ),
+    (
+        "IBAN (DE)",
+        "Transfer to DE89370400440532013000 please",
+        ["IBAN"],
+        "Transfer to [IBAN] please",
+    ),
+    (
+        "UK National Insurance Number",
+        "NI number: AB123456D",
+        ["UK_NIN"],
+        "NI number: [UK_NIN]",
+    ),
+    (
+        "Visa credit card (Luhn valid)",
+        "Card: 4532015112830366",
+        ["CREDIT_CARD"],
+        "Card: [CREDIT_CARD]",
+    ),
+    (
+        "Amex card (Luhn valid)",
+        "Payment: 378282246310005",
+        ["CREDIT_CARD"],
+        "Payment: [CREDIT_CARD]",
+    ),
+    # US / HIPAA
+    (
+        "SSN with dashes",
+        "SSN: 123-45-6789",
+        ["SSN_US"],
+        "SSN: [SSN_US]",
+    ),
+    (
+        "SSN with spaces",
+        "Social security 123 45 6789 on file",
+        ["SSN_US"],
+        "Social security [SSN_US] on file",
+    ),
+    (
+        "Invalid SSN (000 prefix) not matched",
+        "Fake: 000-45-6789",
+        [],
+        "Fake: 000-45-6789",
+    ),
+    (
+        "US phone with +1",
+        "Call +1-800-555-1234 for support",
+        ["US_PHONE"],
+        "Call [US_PHONE] for support",
+    ),
+    (
+        "Medical Record Number",
+        "Patient ID: P123456",
+        ["MRN"],
+        "Patient ID: [MRN]",
+    ),
 ]
 
 print("\nRunning India PII detector tests...\n")
@@ -149,7 +213,36 @@ samples = [
     "PAN: ABCDE1234F",
     "Mobile: 9876543210",
     "UPI: rahul@okicici",
+    "IBAN: GB29NWBK60161331926819",
+    "Card: 4532015112830366",
+    "SSN: 123-45-6789",
 ]
 for s in samples:
     masked, _ = redact_all(s, "mask")
     print(f"  {s!r:45} → {masked!r}")
+
+# EU detector direct tests
+print("\nEU detector direct tests:")
+eu_cases = [
+    ("GB29NWBK60161331926819", "IBAN"),
+    ("DE89370400440532013000", "IBAN"),
+    ("AB123456D", "UK_NIN"),
+]
+for val, etype in eu_cases:
+    entities = detect_eu(val)
+    found = [e.type for e in entities]
+    ok = etype in found
+    print(f"  {'PASS' if ok else 'FAIL'}  {val!r} → {found}")
+
+# US detector direct tests
+print("\nUS detector direct tests:")
+us_cases = [
+    ("123-45-6789", "SSN_US"),
+    ("+1-800-555-1234", "US_PHONE"),
+    ("MRN: MRN2024001", "MRN"),
+]
+for val, etype in us_cases:
+    entities = detect_us(val)
+    found = [e.type for e in entities]
+    ok = etype in found
+    print(f"  {'PASS' if ok else 'FAIL'}  {val!r} → {found}")
