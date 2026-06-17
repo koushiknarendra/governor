@@ -1,124 +1,267 @@
+<div align="center">
+
 # Svitch
 
-**The AI data security layer for regulated enterprises.**
+**The AI compliance layer for regulated enterprises in India.**
 
-Svitch sits between your application and any LLM provider — detecting and redacting sensitive data before it leaves your infrastructure, and logging every agent decision for regulatory audit.
+PII detection · Consent management · Agent audit trails · DPDP reports
 
-```python
-import svitch
-import openai
+[![PyPI](https://img.shields.io/pypi/v/svitch?color=1C6EF2&label=pip+install+svitch)](https://pypi.org/project/svitch/)
+[![Python](https://img.shields.io/badge/python-3.10%2B-1C6EF2)](https://pypi.org/project/svitch/)
+[![License](https://img.shields.io/badge/license-Apache%202.0-16a34a)](LICENSE)
+[![CI](https://github.com/koushiknarendra/svitch/actions/workflows/ci.yml/badge.svg)](https://github.com/koushiknarendra/svitch/actions)
 
-client = svitch.wrap(openai.OpenAI(api_key="..."))
+[Dashboard](https://svitch.ai/dashboard) · [DPDP Guide](https://svitch.ai/dpdp) · [Docs](#quickstart)
 
-# Aadhaar, PAN, UPI IDs — automatically redacted before hitting OpenAI
-response = client.chat.completions.create(
-    model="gpt-4o",
-    messages=[{"role": "user", "content": "Customer Rahul Sharma, Aadhaar 2345 6789 0123, PAN ABCDE1234F needs a loan summary."}]
-)
-# OpenAI receives: "Customer [NAME], Aadhaar [AADHAAR], PAN [PAN] needs a loan summary."
-```
+</div>
 
-## What It Detects
+---
 
-**India (DPDP-critical):**
-- Aadhaar numbers (12-digit, masked and unmasked formats)
-- PAN cards (ABCDE1234F format)
-- UPI IDs (name@bankcode)
-- IFSC codes (ABCD0123456)
-- Indian mobile numbers (10-digit, +91 prefix variants)
-- Indian Passport numbers
-- Voter ID (EPIC numbers)
-- GST numbers
-- Bank account numbers
+Under India's **DPDP Act** (enforcement May 2027, penalties up to ₹250 crore), every AI system that processes customer data must detect and redact Indian PII, record verifiable consent, and maintain a tamper-evident audit trail of every agent decision.
 
-**Global:**
-- Email addresses
-- Generic phone numbers
-- IPv4/IPv6 addresses
-
-## Quickstart
-
-### Python
+No existing tool — not AWS Bedrock Guardrails, not Azure Content Safety — supports Aadhaar, PAN, or UPI IDs. Svitch does.
 
 ```bash
 pip install svitch
 ```
 
 ```python
+import svitch, openai
+
+client = svitch.wrap(openai.OpenAI())
+
+# Aadhaar and PAN are redacted before the prompt reaches OpenAI
+response = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[{"role": "user", "content": "Loan for Aadhaar 9876 5432 1098, PAN ABCDE1234F"}]
+)
+```
+
+---
+
+## What's inside
+
+| Component | What it does | Status |
+|---|---|---|
+| [**PII Shield**](pii-shield/) | Detect + redact Indian PII from prompts, responses, and agent context | ✅ Live |
+| [**Agent Tracer**](agent-tracer/) | Immutable, hash-chained audit trail of every agent decision | ✅ Live |
+| [**Consent Ledger**](consent-ledger/) | DPDP §6-compliant consent records — cryptographically verifiable | ✅ Live |
+| [**Compliance Engine**](compliance-engine/) | Auto-generate DPDP DPIA and RBI FREE Framework reports | ✅ Live |
+| [**Dashboard**](web/) | Compliance overview, live service health, DPIA generator | ✅ [svitch.ai](https://svitch.ai/dashboard) |
+| [**Python SDK**](sdk/python/) | `pip install svitch` — zero dependencies, runs locally | ✅ PyPI |
+| [**Node.js SDK**](sdk/node/) | `npm install svitch` — TypeScript-first, same API | ✅ npm |
+
+---
+
+## Quickstart
+
+### PII detection (local, zero network calls)
+
+```python
 import svitch
 
-# Detect PII in text
-result = svitch.detect("Call me on 9876543210, my PAN is ABCDE1234F")
-# result.entities: [Entity(type='MOBILE_IN', value='9876543210', ...), Entity(type='PAN', ...)]
+# Detect
+entities = svitch.detect("Customer Aadhaar: 2345 6789 0123, UPI: rahul@okicici")
+# [Entity(type='AADHAAR', value='2345 6789 0123'), Entity(type='UPI_ID', ...)]
 
-# Redact PII from text
-redacted = svitch.redact("My Aadhaar is 2345 6789 0123")
-# redacted.text: "My Aadhaar is [AADHAAR]"
+# Redact — token replacement
+result = svitch.redact("PAN ABCDE1234F, mobile 9876543210")
+result.text   # "PAN [PAN], mobile [MOBILE_IN]"
+result.count  # 2
 
-# Wrap any OpenAI-compatible client
-import openai
-client = svitch.wrap(openai.OpenAI())
-# Use exactly like openai.OpenAI() — PII is redacted automatically
+# Redact — partial mask
+result = svitch.redact("Aadhaar: 2345 6789 0123", replacement="mask")
+result.text   # "Aadhaar: XXXX XXXX 0123"
 ```
 
-### Node.js
+### Wrap any LLM client
 
-```bash
-npm install svitch
+```python
+import svitch, openai, anthropic
+
+client = svitch.wrap(openai.OpenAI())      # OpenAI
+client = svitch.wrap(anthropic.Anthropic()) # Anthropic
+
+# Use exactly like the original — PII is redacted in every prompt and response
 ```
+
+### Agent audit trail
+
+```python
+from svitch_tracer import SvitchTracer   # included in pip install svitch
+
+tracer = SvitchTracer(agent_id="loan-processor-v2")
+
+with tracer.run() as run:
+    run.data_access(
+        source="crm",
+        fields_accessed=["aadhaar", "pan", "income"],
+        purpose="loan_processing",
+        data_principal_id="CUST-5821",
+    )
+    run.llm_call(
+        provider="openai", model="gpt-4o",
+        prompt="Assess [AADHAAR_IN] applicant",  # already redacted
+        response="Eligible. Score: 72/100.",
+    )
+    run.decision(reason="Score above threshold", outcome="approve", confidence=0.87)
+    run.human_checkpoint(
+        question="Approve ₹5L loan?", approved=True, reviewer_id="anand.k"
+    )
+
+valid, err = run.verify()   # cryptographic proof the chain is intact
+```
+
+### TypeScript / Node.js
 
 ```typescript
 import { detect, redact, wrap } from 'svitch';
 import OpenAI from 'openai';
 
-const { entities } = detect("My UPI is rahul@okicici");
-const { text } = redact("PAN: ABCDE1234F, Aadhaar: 2345 6789 0123");
+const { entities } = detect("My UPI is rahul@okicici, PAN ABCDE1234F");
+const { text }     = redact("Aadhaar: 2345 6789 0123");
 
 const client = wrap(new OpenAI({ apiKey: process.env.OPENAI_API_KEY }));
 ```
 
-### Self-hosted Service
+---
 
-```bash
-cd pii-shield/service
-pip install -r requirements.txt
-uvicorn main:app --host 0.0.0.0 --port 8000
-```
+## Detected PII types
 
-```bash
-curl -X POST http://localhost:8000/redact \
-  -H "Content-Type: application/json" \
-  -d '{"text": "Aadhaar: 2345 6789 0123, PAN: ABCDE1234F"}'
-```
+**India (DPDP-critical)**
 
-## Why Svitch
+| Type | Example |
+|------|---------|
+| `AADHAAR` | `2345 6789 0123`, `XXXX XXXX 0123` |
+| `PAN` | `ABCDE1234F` |
+| `UPI_ID` | `rahul@okicici`, `name@paytm` |
+| `IFSC` | `HDFC0001234` |
+| `MOBILE_IN` | `9876543210`, `+91 98765 43210` |
+| `BANK_ACCOUNT` | 9–18 digit account numbers |
+| `GST` | `22AAAAA0000A1Z5` |
 
-No existing tool — not AWS Bedrock Guardrails, not Azure Content Safety, not NeMo Guardrails — properly detects Indian PII entities (Aadhaar, PAN, UPI IDs) across multiple LLM providers.
+**Global**
 
-Under India's DPDP Act (full enforcement May 2027), sending unredacted personal data to a third-party LLM provider exposes your company to penalties up to ₹250 crore.
+| Type | Example |
+|------|---------|
+| `EMAIL` | `user@example.com` |
+| `IPV4` | `192.168.1.1` |
+
+---
 
 ## Architecture
 
 ```
-Your App → Svitch SDK → [PII detected & redacted] → LLM Provider
-                ↓
-         Audit Log (append-only, hash-chained)
+Your Application
+      │
+      ▼
+┌─────────────────────────────────────────────────┐
+│  Svitch SDK  (pip install svitch)               │
+│                                                  │
+│  svitch.wrap(client)  →  PII redacted locally  │
+│  SvitchTracer         →  Events → Tracer API   │
+└───────────────────────┬─────────────────────────┘
+                        │  HTTPS (redacted data only)
+          ┌─────────────┼──────────────┐
+          ▼             ▼              ▼
+    PII Shield    Agent Tracer   Consent Ledger
+    /detect       /runs          /consent/grant
+    /redact       /runs/{id}     /consent/{id}/verify
+
+          └─────────────┬──────────────┘
+                        ▼
+               Compliance Engine
+               /report/dpdp-dpia
+               /report/rbi-free
+                        │
+                        ▼
+                  Dashboard (svitch.ai)
 ```
 
-The SDK runs locally — no data sent to Svitch servers. The optional hosted service adds audit trails, dashboards, and compliance reports.
+The SDK runs locally — no data sent to Svitch servers.
+The hosted services add audit storage, the dashboard, and compliance reports.
+
+---
+
+## Self-hosting
+
+```bash
+git clone https://github.com/koushiknarendra/svitch
+cd svitch
+docker compose up
+```
+
+| Service | Port |
+|---------|------|
+| PII Shield | `8001` |
+| Agent Tracer | `8002` |
+| Consent Ledger | `8003` |
+| Compliance Engine | `8004` |
+
+Or run individually:
+
+```bash
+cd pii-shield/service && pip install -r requirements.txt && uvicorn main:app --port 8001
+cd agent-tracer       && pip install -r requirements.txt && uvicorn server:app --port 8002
+cd consent-ledger     && pip install -r requirements.txt && uvicorn server:app --port 8003
+cd compliance-engine  && pip install -r requirements.txt && uvicorn server:app --port 8004
+```
+
+Point the SDK at your local stack:
+
+```bash
+export SVITCH_PII_SHIELD_URL=http://localhost:8001
+export SVITCH_TRACER_URL=http://localhost:8002
+```
+
+---
+
+## DPDP compliance
+
+If you're building AI systems that process personal data of Indian residents, read the technical guide:
+
+**→ [DPDP for AI Developers](https://svitch.ai/dpdp)** — every Act section mapped to code, with penalties, timeline, and a compliance checklist.
+
+---
 
 ## Roadmap
 
-- [x] India PII detection (Aadhaar, PAN, UPI, IFSC, mobile, passport, voter ID, GST)
-- [x] Python SDK with OpenAI + Anthropic wrappers
-- [x] Node.js SDK
-- [x] Self-hosted FastAPI service
-- [ ] Agent decision lineage (LangGraph, CrewAI, AutoGen)
-- [ ] DPDP compliance report generator
-- [ ] Private AI inference enclave (run Llama/Mistral on your own server)
-- [ ] Blockchain consent ledger
-- [ ] GDPR / HIPAA mode
+- [x] India PII detection — Aadhaar, PAN, UPI, IFSC, mobile, GST, bank accounts
+- [x] OpenAI + Anthropic client wrappers
+- [x] Python SDK (`pip install svitch`) — zero dependencies
+- [x] Node.js SDK (`npm install svitch`) — TypeScript-first
+- [x] Agent audit trail — hash-chained, tamper-evident
+- [x] DPDP DPIA auto-generation
+- [x] RBI FREE Framework self-assessment
+- [x] Consent ledger — append-only, cryptographically verifiable
+- [x] Compliance dashboard — [svitch.ai/dashboard](https://svitch.ai/dashboard)
+- [ ] LangGraph / LangChain native integration
+- [ ] GDPR + HIPAA mode
+- [ ] Private inference enclave — air-gapped Llama/Mistral
+- [ ] OpenTelemetry-compatible agent spans
+- [ ] DPDP-AI Compliance Spec v1.0 — open standard
+
+---
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Good first issues are tagged [`good first issue`](https://github.com/koushiknarendra/svitch/issues?q=label%3A%22good+first+issue%22).
+
+High-value contributions right now:
+- Additional Indian PII patterns (Voter ID / EPIC, Passport, Driving Licence)
+- LangChain / LangGraph tracer integration
+- GDPR entity patterns (IBAN, NHS number, BSN, NIF)
+
+---
 
 ## License
 
 Apache 2.0 — free to use, modify, and distribute.
+
+---
+
+<div align="center">
+Built by <a href="https://svitch.ai">Svitch</a> ·
+<a href="https://svitch.ai/dpdp">DPDP Guide</a> ·
+<a href="https://svitch.ai/dashboard">Dashboard</a>
+</div>
