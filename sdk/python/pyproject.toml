@@ -4,12 +4,12 @@ build-backend = "hatchling.build"
 
 [project]
 name = "svitch"
-version = "0.1.0"
-description = "AI data security layer — detect and redact Indian and global PII from LLM prompts."
+version = "0.1.1"
+description = "DPDP-compliant AI data security — PII detection, redaction, and agent audit trails for Indian enterprises."
 readme = "README.md"
 license = { text = "Apache-2.0" }
 requires-python = ">=3.10"
-keywords = ["pii", "dpdp", "llm", "security", "india", "compliance", "aadhaar", "pan"]
+keywords = ["pii", "dpdp", "llm", "security", "india", "compliance", "aadhaar", "pan", "agent", "audit"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -26,9 +26,10 @@ anthropic = ["anthropic>=0.25.0"]
 all = ["openai>=1.0.0", "anthropic>=0.25.0"]
 
 [project.urls]
-Homepage = "https://github.com/svitch-ai/svitch"
-Repository = "https://github.com/svitch-ai/svitch"
-Issues = "https://github.com/svitch-ai/svitch/issues"
+Homepage = "https://svitch.ai"
+Documentation = "https://svitch.ai/dpdp"
+Repository = "https://github.com/koushiknarendra/svitch"
+Issues = "https://github.com/koushiknarendra/svitch/issues"
 
 [tool.hatch.build.targets.wheel]
-packages = ["svitch"]
+packages = ["svitch", "svitch_tracer"]
