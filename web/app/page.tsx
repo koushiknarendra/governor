@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, ReactNode } from "react";
+import Logo from "./components/Logo";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 const ACCENT    = "#2A6FDB";
@@ -251,14 +252,9 @@ export default function Home() {
       {/* ── NAV ── */}
       <nav style={{ position: "sticky", top: 0, zIndex: 50, background: "rgba(250,250,248,0.88)", backdropFilter: "saturate(180%) blur(8px)", borderBottom: "1px solid #E8E8E4" }}>
         <div className="r-nav-inner">
-          {/* Logo mark + wordmark */}
-          <a href="#" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
-            <span style={{ width: 22, height: 22, background: ACCENT, borderRadius: 4, display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                <path d="M2 6h4M6 6l2.5-2.5M6 6l2.5 2.5" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </span>
-            <span style={{ fontFamily: DISPLAY, fontSize: 18, fontWeight: 700, letterSpacing: "-0.03em", color: "#0D0D0B" }}>Svitch</span>
+          {/* Logo */}
+          <a href="#" style={{ textDecoration: "none" }}>
+            <Logo theme="light" size="md" />
           </a>
 
           <div className="r-nav-links" style={{ fontFamily: MONO, fontSize: 13, color: "#71716B" }}>

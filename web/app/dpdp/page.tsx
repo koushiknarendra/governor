@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Logo from "../components/Logo";
 
 export const metadata: Metadata = {
   title: "DPDP for AI Developers — Svitch",
@@ -127,13 +128,8 @@ export default function DPDPGuidePage() {
         borderBottom: "1px solid #E8E8E4",
       }}>
         <div style={{ maxWidth: 1180, margin: "0 auto", padding: "0 40px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <Link href="/" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
-            <span style={{
-              width: 28, height: 28, borderRadius: 7, background: "#0D0D0B",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 13, fontWeight: 700, color: "white", fontFamily: "Space Grotesk, sans-serif",
-            }}>S</span>
-            <span style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 700, fontSize: 16, color: "#0D0D0B" }}>Svitch</span>
+          <Link href="/" style={{ textDecoration: "none" }}>
+            <Logo theme="light" size="md" />
           </Link>
           <div style={{ display: "flex", gap: 28, fontSize: 13, color: "#71716B", fontFamily: "'DM Mono', monospace" }}>
             <Link href="/#process" style={{ color: "#71716B", textDecoration: "none" }}>Products</Link>

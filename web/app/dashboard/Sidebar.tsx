@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Logo from "../components/Logo";
 
 const nav = [
   { href: "/dashboard",         label: "Overview",        icon: IconOverview },
@@ -19,17 +20,10 @@ export default function Sidebar() {
       flexDirection: "column", padding: "24px 0", position: "sticky", top: 0, height: "100vh",
     }}>
       {/* Logo */}
-      <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 20px 28px", textDecoration: "none" }}>
+      <Link href="/" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 20px 28px", textDecoration: "none" }}>
+        <Logo theme="dark" size="md" />
         <span style={{
-          width: 28, height: 28, borderRadius: 7, background: "#1C6EF2",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 14, fontWeight: 700, color: "white", fontFamily: "Space Grotesk, sans-serif",
-        }}>S</span>
-        <span style={{ color: "white", fontSize: 15, fontWeight: 600, fontFamily: "Space Grotesk, sans-serif" }}>
-          Svitch
-        </span>
-        <span style={{
-          marginLeft: "auto", fontSize: 10, fontWeight: 600, color: "#1C6EF2",
+          fontSize: 10, fontWeight: 600, color: "#1C6EF2",
           background: "rgba(28,110,242,0.15)", borderRadius: 4, padding: "2px 6px", letterSpacing: "0.05em",
         }}>BETA</span>
       </Link>
