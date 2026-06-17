@@ -2,9 +2,9 @@
 
 # Svitch
 
-**The AI compliance layer for regulated enterprises in India.**
+**Privacy-first AI infrastructure.**
 
-PII detection · Consent management · Agent audit trails · DPDP reports
+PII detection · Consent management · Agent audit trails · Compliance reports
 
 [![PyPI](https://img.shields.io/pypi/v/svitch?color=1C6EF2&label=pip+install+svitch)](https://pypi.org/project/svitch/)
 [![Python](https://img.shields.io/badge/python-3.10%2B-1C6EF2)](https://pypi.org/project/svitch/)
@@ -17,9 +17,9 @@ PII detection · Consent management · Agent audit trails · DPDP reports
 
 ---
 
-Under India's **DPDP Act** (enforcement May 2027, penalties up to ₹250 crore), every AI system that processes customer data must detect and redact Indian PII, record verifiable consent, and maintain a tamper-evident audit trail of every agent decision.
+AI systems leak personal data by default — into LLM APIs, into logs, across providers. Svitch fixes that at the infrastructure level: detect and redact PII before prompts leave your codebase, record every agent decision in a tamper-evident audit trail, and generate compliance reports on demand.
 
-No existing tool — not AWS Bedrock Guardrails, not Azure Content Safety — supports Aadhaar, PAN, or UPI IDs. Svitch does.
+Works with any LLM provider. Covers Indian PII (Aadhaar, PAN, UPI — formats no global tool handles), GDPR entities, and HIPAA PHI. India is the first compliance mode; global frameworks ship next.
 
 ```bash
 pip install svitch
@@ -43,7 +43,7 @@ response = client.chat.completions.create(
 
 | Component | What it does | Status |
 |---|---|---|
-| [**PII Shield**](pii-shield/) | Detect + redact Indian PII from prompts, responses, and agent context | ✅ Live |
+| [**PII Shield**](pii-shield/) | Detect + redact PII from prompts, responses, and agent context | ✅ Live |
 | [**Agent Tracer**](agent-tracer/) | Immutable, hash-chained audit trail of every agent decision | ✅ Live |
 | [**Consent Ledger**](consent-ledger/) | DPDP §6-compliant consent records — cryptographically verifiable | ✅ Live |
 | [**Compliance Engine**](compliance-engine/) | Auto-generate DPDP DPIA and RBI FREE Framework reports | ✅ Live |
@@ -128,7 +128,7 @@ const client = wrap(new OpenAI({ apiKey: process.env.OPENAI_API_KEY }));
 
 ## Detected PII types
 
-**India (DPDP-critical)**
+**India & South Asia**
 
 | Type | Example |
 |------|---------|
@@ -216,11 +216,11 @@ export SVITCH_TRACER_URL=http://localhost:8002
 
 ---
 
-## DPDP compliance
+## Compliance guides
 
-If you're building AI systems that process personal data of Indian residents, read the technical guide:
+**→ [DPDP for AI Developers](https://svitch.ai/dpdp)** — India's Digital Personal Data Protection Act mapped to code. Every section, penalties, timeline, and a compliance checklist.
 
-**→ [DPDP for AI Developers](https://svitch.ai/dpdp)** — every Act section mapped to code, with penalties, timeline, and a compliance checklist.
+GDPR and HIPAA guides coming soon.
 
 ---
 

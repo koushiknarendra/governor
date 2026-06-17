@@ -5,11 +5,11 @@ build-backend = "hatchling.build"
 [project]
 name = "svitch"
 version = "0.1.2"
-description = "DPDP-compliant AI data security — PII detection, redaction, and agent audit trails for Indian enterprises."
+description = "Privacy-first AI infrastructure — PII detection, redaction, agent audit trails, and compliance reports for teams building AI on sensitive data."
 readme = "README.md"
 license = { text = "Apache-2.0" }
 requires-python = ">=3.10"
-keywords = ["pii", "dpdp", "llm", "security", "india", "compliance", "aadhaar", "pan", "agent", "audit"]
+keywords = ["pii", "privacy", "llm", "security", "compliance", "gdpr", "dpdp", "hipaa", "aadhaar", "pan", "agent", "audit"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
