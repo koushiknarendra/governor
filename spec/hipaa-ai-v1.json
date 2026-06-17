@@ -1,0 +1,414 @@
+{
+  "$schema": "https://svitch.ai/schemas/hipaa-ai/v1",
+  "spec_id": "HIPAA-AI-SPEC-001",
+  "version": "1.0.0",
+  "title": "HIPAA-AI Compliance Specification v1.0",
+  "description": "Machine-readable specification defining what the Health Insurance Portability and Accountability Act (HIPAA) requires from AI systems that process Protected Health Information (PHI). Each control maps to a HIPAA rule and sub-section, carries verifiable assertions, and identifies applicable PHI entity types.",
+  "authors": ["Svitch (https://svitch.ai)"],
+  "license": "CC-BY-4.0",
+  "effective_date": "2003-04-14",
+  "jurisdiction": "United States",
+  "regulation": {
+    "name": "Health Insurance Portability and Accountability Act",
+    "short_name": "HIPAA",
+    "reference": "45 CFR Parts 160, 162, and 164",
+    "in_force_date": "1996-08-21",
+    "enforced_by": "HHS Office for Civil Rights (OCR)",
+    "url": "https://www.hhs.gov/hipaa"
+  },
+  "ai_specific_guidance": {
+    "ocr_ai_bulletin_2024": "In 2024, HHS OCR issued guidance clarifying that AI systems creating, receiving, maintaining, or transmitting PHI are subject to full HIPAA compliance — including LLM API calls that contain PHI. See: hhs.gov/hipaa/for-professionals/special-topics/health-information-technology/index.html",
+    "llm_api_classification": "Sending PHI to an LLM API (OpenAI, Anthropic, etc.) constitutes 'disclosure' under 45 CFR 164.502. The LLM vendor becomes a Business Associate and requires a BAA. Alternatively, PHI must be de-identified per §164.514 before transmission."
+  },
+  "penalty_tiers": [
+    {
+      "tier": "unknowing",
+      "per_violation_usd": 100,
+      "annual_cap_usd": 25000,
+      "description": "Did not know and could not have known"
+    },
+    {
+      "tier": "reasonable_cause",
+      "per_violation_usd": 1000,
+      "annual_cap_usd": 100000,
+      "description": "Reasonable cause but not wilful neglect"
+    },
+    {
+      "tier": "willful_neglect_corrected",
+      "per_violation_usd": 10000,
+      "annual_cap_usd": 250000,
+      "description": "Wilful neglect but corrected within 30 days"
+    },
+    {
+      "tier": "willful_neglect_uncorrected",
+      "per_violation_usd": 50000,
+      "annual_cap_usd": 1500000,
+      "description": "Wilful neglect, not corrected"
+    }
+  ],
+  "hipaa_rules": {
+    "privacy_rule": "45 CFR 164.500–164.534 — governs use and disclosure of PHI",
+    "security_rule": "45 CFR 164.300–164.318 — governs electronic PHI (ePHI) safeguards",
+    "breach_notification_rule": "45 CFR 164.400–164.414 — governs breach notification obligations",
+    "enforcement_rule": "45 CFR 160.300–160.552 — governs HHS enforcement and penalties"
+  },
+  "controls": [
+    {
+      "id": "HIPAA-AI-001",
+      "category": "phi_deidentification",
+      "title": "De-identify PHI before transmitting to LLM APIs",
+      "rule": "Privacy Rule",
+      "reference": "45 CFR §164.514(a)–(b)",
+      "requirement_level": "MUST",
+      "applies_to": ["all_ai_systems_using_external_llm_apis"],
+      "description": "PHI must be de-identified before being transmitted to LLM APIs (OpenAI, Anthropic, Google, etc.) unless a BAA is in place. HIPAA §164.514 provides two safe harbors: (1) Expert Determination: a qualified statistician certifies re-identification risk is 'very small'; (2) Safe Harbor: removal of all 18 PHI identifiers. For AI systems, the Safe Harbor method — automated PII redaction — is the only practical approach at scale.",
+      "safe_harbor_18_identifiers": [
+        "Names",
+        "Geographic subdivisions smaller than a state",
+        "Dates (except year) related to the individual",
+        "Phone numbers",
+        "Fax numbers",
+        "Email addresses",
+        "Social security numbers",
+        "Medical record numbers (MRN)",
+        "Health plan beneficiary numbers",
+        "Account numbers",
+        "Certificate or license numbers",
+        "Vehicle identifiers and serial numbers",
+        "Device identifiers and serial numbers",
+        "Web URLs",
+        "IP addresses",
+        "Biometric identifiers (fingerprint, voice)",
+        "Full-face photographs",
+        "Any other unique identifying number or code"
+      ],
+      "assertions": [
+        "phi_redacted_before_llm_api_call",
+        "all_18_safe_harbor_identifiers_stripped",
+        "redaction_logged_with_entity_types",
+        "residual_identifiers_not_transmitted"
+      ],
+      "implementation": {
+        "svitch_feature": "pii-shield",
+        "api_endpoint": "/redact",
+        "sdk_method": "svitch.redact(text, locale='us')",
+        "sdk_wrap": "svitch.wrap(client, locale='us')"
+      },
+      "penalty_tier": "willful_neglect_uncorrected",
+      "audit_event_type": "phi_deidentification"
+    },
+    {
+      "id": "HIPAA-AI-002",
+      "category": "business_associate",
+      "title": "Business Associate Agreement with LLM API vendors",
+      "rule": "Privacy Rule",
+      "reference": "45 CFR §164.502(e), §164.504(e)",
+      "requirement_level": "MUST",
+      "condition": "If PHI is transmitted to any LLM API or AI service provider",
+      "applies_to": ["covered_entities", "business_associates"],
+      "description": "Any vendor that creates, receives, maintains, or transmits PHI on behalf of a Covered Entity is a Business Associate and requires a signed BAA. This includes: LLM APIs (if PHI is in prompts), AI model providers, cloud storage for PHI, analytics platforms receiving PHI. The BAA must specify: permitted uses, safeguard requirements, PHI return/destruction, breach notification obligation.",
+      "assertions": [
+        "baa_signed_with_each_llm_vendor_handling_phi",
+        "baa_specifies_permitted_phi_uses",
+        "baa_prohibits_llm_training_on_phi",
+        "baa_requires_breach_notification_within_60_days",
+        "baa_requires_phi_destruction_on_termination"
+      ],
+      "implementation": {
+        "note": "LLM vendor BAA status: OpenAI (openai.com/security/hipaa), Google Cloud Healthcare API (available), Azure OpenAI (available via Azure BAA), Anthropic (check current status at anthropic.com). Best practice: use de-identification (HIPAA-AI-001) so BAA scope is minimised.",
+        "best_practice": "Zero-PHI API calls via svitch.wrap() eliminates BAA dependency for LLM API tier"
+      },
+      "penalty_tier": "willful_neglect_uncorrected",
+      "audit_event_type": "baa_verification"
+    },
+    {
+      "id": "HIPAA-AI-003",
+      "category": "minimum_necessary",
+      "title": "Minimum necessary PHI in AI system inputs",
+      "rule": "Privacy Rule",
+      "reference": "45 CFR §164.502(b), §164.514(d)",
+      "requirement_level": "MUST",
+      "applies_to": ["all_ai_systems"],
+      "description": "HIPAA requires that only the minimum necessary PHI be used or disclosed for the intended purpose. For AI systems, this means: (a) do not include full patient records in prompts when a summary suffices; (b) do not pass PHI to AI tools that don't require it for their function; (c) policy-based field selection: define which PHI fields each agent or tool is permitted to access.",
+      "assertions": [
+        "phi_fields_scoped_to_agent_purpose",
+        "no_unnecessary_phi_in_llm_prompts",
+        "data_access_policies_defined_per_agent",
+        "minimum_necessary_review_documented"
+      ],
+      "implementation": {
+        "svitch_feature": "agent-tracer",
+        "sdk_method": "run.dataAccess(source, fieldsAccessed=['only_needed_fields'], purpose='specific_purpose')"
+      },
+      "penalty_tier": "reasonable_cause",
+      "audit_event_type": "minimum_necessary_check"
+    },
+    {
+      "id": "HIPAA-AI-004",
+      "category": "access_controls",
+      "title": "Access controls for AI systems handling ePHI",
+      "rule": "Security Rule",
+      "reference": "45 CFR §164.312(a)(1) — Technical Safeguards",
+      "requirement_level": "MUST",
+      "specification_type": "Required",
+      "applies_to": ["all_ai_systems_handling_ephi"],
+      "description": "Covered Entities must implement technical policies to allow access to ePHI only to authorized users. For AI systems, this means: unique agent identities, access logging, role-based data access (agent X may only access PHI categories Y), and automatic session termination. LLM API keys must not be shared across agents with different PHI access levels.",
+      "assertions": [
+        "ai_agents_have_unique_identities",
+        "agent_identity_logged_per_phi_access",
+        "phi_access_role_based",
+        "llm_api_keys_scoped_by_phi_access_level",
+        "access_logs_maintained"
+      ],
+      "implementation": {
+        "svitch_feature": "agent-tracer",
+        "sdk_method": "SvitchTracer(agent_id='unique-agent-id')",
+        "note": "agent_id functions as unique agent identity in audit trail"
+      },
+      "penalty_tier": "reasonable_cause",
+      "audit_event_type": "access_control_check"
+    },
+    {
+      "id": "HIPAA-AI-005",
+      "category": "audit_controls",
+      "title": "Audit log for AI system PHI access",
+      "rule": "Security Rule",
+      "reference": "45 CFR §164.312(b) — Audit Controls",
+      "requirement_level": "MUST",
+      "specification_type": "Required",
+      "applies_to": ["all_ai_systems_handling_ephi"],
+      "description": "Covered Entities must implement hardware, software, and procedural mechanisms to record and examine activity in systems that contain or use ePHI. For AI systems, this requires an immutable audit log recording: which agent accessed which PHI, when, for what purpose, which LLM received the (de-identified) data, and the outcome of each decision. The log must be tamper-evident.",
+      "assertions": [
+        "immutable_audit_log_per_ai_agent_run",
+        "log_includes_phi_fields_accessed",
+        "log_includes_purpose_of_access",
+        "log_includes_llm_provider_used",
+        "log_tamper_evident_hash_chained",
+        "audit_logs_retained_per_hipaa_retention_schedule"
+      ],
+      "retention": {
+        "minimum_years": 6,
+        "note": "HIPAA requires retention of policies and documentation for 6 years from creation or last effective date. State law may require longer retention for medical records."
+      },
+      "implementation": {
+        "svitch_feature": "agent-tracer",
+        "sdk_method": "run.verify() — returns valid=True if Merkle chain is intact",
+        "sdk_example": "run.llmCall('openai', 'gpt-4o', '[MRN]', 'Plan: monitor vitals')"
+      },
+      "penalty_tier": "willful_neglect_corrected",
+      "audit_event_type": "phi_access_log"
+    },
+    {
+      "id": "HIPAA-AI-006",
+      "category": "integrity_controls",
+      "title": "Integrity of ePHI in AI pipelines",
+      "rule": "Security Rule",
+      "reference": "45 CFR §164.312(c)(1) — Integrity",
+      "requirement_level": "MUST",
+      "specification_type": "Required",
+      "applies_to": ["all_ai_systems_handling_ephi"],
+      "description": "Covered Entities must protect ePHI from improper alteration or destruction. For AI systems, this means: (a) AI-generated clinical recommendations must not overwrite authoritative PHI records without human review; (b) audit logs must be hash-chained so tampering is detectable; (c) AI outputs that update patient records must carry provenance metadata.",
+      "assertions": [
+        "ai_generated_data_not_overwriting_phi_without_human_review",
+        "audit_log_integrity_cryptographically_protected",
+        "ai_output_provenance_tracked"
+      ],
+      "implementation": {
+        "svitch_feature": "agent-tracer",
+        "sdk_method": "run.human_checkpoint(question, approved, reviewer_id) before any PHI update"
+      },
+      "penalty_tier": "reasonable_cause",
+      "audit_event_type": "integrity_check"
+    },
+    {
+      "id": "HIPAA-AI-007",
+      "category": "transmission_security",
+      "title": "Encryption of ePHI in transit to LLM APIs",
+      "rule": "Security Rule",
+      "reference": "45 CFR §164.312(e)(1) — Transmission Security",
+      "requirement_level": "MUST",
+      "specification_type": "Addressable (effectively required for internet transmission)",
+      "applies_to": ["all_ai_systems_transmitting_ephi"],
+      "description": "ePHI transmitted over electronic networks must be protected against unauthorised access. All LLM API calls must use TLS 1.2+. Even when PHI is de-identified before transmission, the channel must be encrypted because de-identification is not perfect and residual risk may remain. Do not use HTTP endpoints for AI API calls.",
+      "assertions": [
+        "llm_api_calls_use_tls_12_or_higher",
+        "no_phi_or_deidentified_data_over_http",
+        "certificate_validation_not_disabled"
+      ],
+      "implementation": {
+        "note": "Standard HTTPS. Verify via: openssl s_client -connect api.openai.com:443 -tls1_2"
+      },
+      "penalty_tier": "reasonable_cause",
+      "audit_event_type": "transmission_security_check"
+    },
+    {
+      "id": "HIPAA-AI-008",
+      "category": "breach_notification",
+      "title": "Breach notification for PHI exposed by AI systems",
+      "rule": "Breach Notification Rule",
+      "reference": "45 CFR §164.402–164.412",
+      "requirement_level": "MUST",
+      "applies_to": ["all_covered_entities_using_ai"],
+      "description": "A breach of unsecured PHI must be notified to: (a) affected individuals within 60 days of discovery; (b) HHS Secretary — within 60 days if affecting 500+ individuals, or annually if affecting fewer; (c) prominent media if 500+ residents of a state. For AI systems, an inadvertent PHI disclosure to an LLM API (e.g., un-redacted prompt) likely constitutes a breach unless the low probability exception applies. The audit trail makes breach scope determination possible.",
+      "low_probability_exception": "A breach does not require notification if there is a low probability that the PHI has been compromised, assessed by: nature of PHI disclosed, who received it, whether PHI was actually acquired, extent of risk mitigated.",
+      "assertions": [
+        "breach_detection_mechanism_exists",
+        "individual_notification_within_60_days",
+        "hhs_notification_within_60_days_for_500_plus",
+        "breach_log_maintained_for_smaller_breaches",
+        "ai_audit_trail_enables_breach_scope_determination"
+      ],
+      "implementation": {
+        "svitch_feature": "agent-tracer",
+        "sdk_method": "run.verify() — tamper-evident chain enables precise breach scope determination"
+      },
+      "penalty_tier": "willful_neglect_uncorrected",
+      "audit_event_type": "breach_notification"
+    },
+    {
+      "id": "HIPAA-AI-009",
+      "category": "risk_analysis",
+      "title": "Risk analysis covering AI system PHI exposure",
+      "rule": "Security Rule",
+      "reference": "45 CFR §164.308(a)(1)(ii)(A) — Risk Analysis",
+      "requirement_level": "MUST",
+      "specification_type": "Required",
+      "applies_to": ["all_covered_entities_using_ai"],
+      "description": "Covered Entities must conduct a thorough and accurate risk analysis of potential risks and vulnerabilities to ePHI. This must now include AI-specific risks: (a) PHI leakage through LLM prompt injection; (b) PHI in LLM context windows or model weights if fine-tuning; (c) PHI in LLM vendor logs; (d) model inversion attacks on fine-tuned models; (e) re-identification risk from de-identified data in AI outputs.",
+      "ai_specific_risks": [
+        "Prompt injection causing PHI extraction",
+        "PHI in LLM vendor request logs (even if de-identified data is re-identifiable)",
+        "PHI leakage through LLM hallucination or training data memorisation",
+        "Re-identification from AI outputs combining quasi-identifiers",
+        "Unauthorised agent access to PHI data sources",
+        "AI model fine-tuned on PHI becoming a PHI store"
+      ],
+      "assertions": [
+        "risk_analysis_includes_ai_systems",
+        "llm_vendor_log_retention_risk_assessed",
+        "prompt_injection_risk_assessed",
+        "fine_tuning_on_phi_risk_assessed",
+        "risk_analysis_documented_and_reviewed_annually"
+      ],
+      "implementation": {
+        "svitch_feature": "compliance-engine",
+        "api_endpoint": "/report/hipaa-risk-analysis"
+      },
+      "penalty_tier": "willful_neglect_uncorrected",
+      "audit_event_type": "risk_analysis"
+    },
+    {
+      "id": "HIPAA-AI-010",
+      "category": "workforce_training",
+      "title": "HIPAA training for AI/ML team members handling PHI",
+      "rule": "Privacy Rule + Security Rule",
+      "reference": "45 CFR §164.530(b), §164.308(a)(5)",
+      "requirement_level": "MUST",
+      "applies_to": ["workforce_members_with_phi_access"],
+      "description": "All workforce members with access to PHI must receive HIPAA training. For AI/ML teams, this must cover AI-specific HIPAA obligations: no PHI in LLM prompts without BAA/de-identification, proper handling of model training data, incident reporting for accidental PHI exposure. Training must be documented.",
+      "assertions": [
+        "hipaa_training_completed_before_phi_access",
+        "training_includes_ai_specific_obligations",
+        "training_documented_with_completion_dates",
+        "annual_training_refresher_completed"
+      ],
+      "implementation": {
+        "note": "Administrative control. Svitch audit trail logs who accessed PHI and when, supporting training compliance verification."
+      },
+      "penalty_tier": "reasonable_cause",
+      "audit_event_type": "training_completion"
+    },
+    {
+      "id": "HIPAA-AI-011",
+      "category": "human_oversight",
+      "title": "Human oversight for AI-generated clinical decisions",
+      "rule": "Privacy Rule (minimum necessary) + FDA guidance on Clinical Decision Support",
+      "reference": "45 CFR §164.502(b) + FDA 21st Century Cures Act",
+      "requirement_level": "SHOULD",
+      "applies_to": ["ai_systems_generating_clinical_recommendations"],
+      "description": "While HIPAA does not explicitly mandate human oversight of AI clinical decisions, the FDA's guidance on Clinical Decision Support Software (2022) requires non-locked CDS software that could affect patient safety to be reviewed by a clinician. Combined with HIPAA minimum necessary and integrity requirements, AI-generated clinical recommendations used to update patient records should have documented human review.",
+      "assertions": [
+        "clinical_ai_recommendations_reviewed_by_clinician",
+        "human_review_documented_in_audit_trail",
+        "ai_vs_human_decision_source_distinguishable_in_records"
+      ],
+      "implementation": {
+        "svitch_feature": "agent-tracer",
+        "sdk_method": "run.human_checkpoint(question='Approve treatment plan?', approved=True, reviewer_id='dr.smith.npi')"
+      },
+      "penalty_tier": "reasonable_cause",
+      "audit_event_type": "human_checkpoint"
+    },
+    {
+      "id": "HIPAA-AI-012",
+      "category": "contingency",
+      "title": "Contingency plan for AI system PHI availability",
+      "rule": "Security Rule",
+      "reference": "45 CFR §164.308(a)(7) — Contingency Plan",
+      "requirement_level": "MUST",
+      "specification_type": "Required",
+      "applies_to": ["ai_systems_that_are_critical_to_phi_workflows"],
+      "description": "Covered Entities must have contingency plans to ensure availability of ePHI in emergencies. For AI systems that are part of PHI workflows (e.g., AI-assisted clinical documentation), the plan must address: (a) fallback to non-AI workflows; (b) audit trail backup and recovery; (c) AI system failure mode that does not corrupt or lose PHI.",
+      "assertions": [
+        "fallback_procedure_documented_for_ai_system_failure",
+        "audit_trail_backed_up_separately_from_ai_system",
+        "ai_failure_does_not_corrupt_phi_records"
+      ],
+      "implementation": {
+        "note": "Administrative control. Svitch audit trail export to immutable storage (S3 Object Lock, GCS Retention Policy) satisfies audit trail backup requirement."
+      },
+      "penalty_tier": "reasonable_cause",
+      "audit_event_type": "contingency_test"
+    }
+  ],
+  "phi_entity_types": {
+    "hipaa_18_safe_harbor": [
+      { "type": "SSN_US",    "description": "Social Security Number",                 "svitch_detected": true,  "examples": ["123-45-6789"] },
+      { "type": "MRN",       "description": "Medical Record Number (keyword-anchored)", "svitch_detected": true,  "examples": ["P123456"] },
+      { "type": "NPI",       "description": "National Provider Identifier (Luhn-validated)", "svitch_detected": true,  "examples": ["1234567893"] },
+      { "type": "US_PHONE",  "description": "US phone number",                         "svitch_detected": true,  "examples": ["+1-800-555-1234"] },
+      { "type": "EMAIL",     "description": "Email address",                           "svitch_detected": true,  "examples": ["patient@email.com"] },
+      { "type": "IPV4",      "description": "IPv4 address",                            "svitch_detected": true,  "examples": ["192.168.1.1"] },
+      { "type": "CREDIT_CARD", "description": "Payment card (Luhn-validated)",         "svitch_detected": true,  "examples": ["4532015112830366"] },
+      { "type": "US_ZIP",    "description": "US ZIP code (keyword-anchored)",           "svitch_detected": true,  "examples": ["90210"] },
+      { "type": "NAME",      "description": "Patient full name",                       "svitch_detected": false, "note": "NER model recommended; regex alone insufficient for names" },
+      { "type": "DATE_OF_BIRTH", "description": "DOB or dates related to individual", "svitch_detected": false, "note": "Date patterns require context to distinguish PHI dates from other dates" },
+      { "type": "BIOMETRIC", "description": "Fingerprint, voice, retina data",        "svitch_detected": false, "note": "Binary/encoded data; requires specialised detection" },
+      { "type": "PHOTOGRAPH", "description": "Full-face photographs",                  "svitch_detected": false, "note": "Image content; requires computer vision" }
+    ],
+    "commonly_encountered_in_ai_prompts": [
+      "SSN_US", "MRN", "NPI", "US_PHONE", "EMAIL", "IPV4", "CREDIT_CARD"
+    ]
+  },
+  "compliance_checklist": [
+    { "phase": "Before deploying AI on PHI", "items": [
+      "✓ Identify all PHI data flows through AI systems",
+      "✓ Conduct risk analysis covering AI-specific threats (HIPAA-AI-009)",
+      "✓ Sign BAAs with all LLM API vendors that will receive PHI (HIPAA-AI-002)",
+      "✓ Implement PHI de-identification: svitch.wrap(client, locale='us') (HIPAA-AI-001)",
+      "✓ Assign unique agent IDs to all AI agents: SvitchTracer(agent_id='...')",
+      "✓ Train all AI/ML team members on HIPAA obligations (HIPAA-AI-010)",
+      "✓ Define minimum necessary PHI per agent purpose (HIPAA-AI-003)"
+    ]},
+    { "phase": "At runtime", "items": [
+      "✓ Redact all 18 Safe Harbor identifiers before LLM calls",
+      "✓ Log every PHI access with fields, purpose, and agent identity",
+      "✓ Require human review for AI-generated clinical updates (HIPAA-AI-011)",
+      "✓ Ensure all API calls use HTTPS/TLS 1.2+ (HIPAA-AI-007)"
+    ]},
+    { "phase": "Ongoing", "items": [
+      "✓ Retain audit logs for 6+ years",
+      "✓ Notify HHS and individuals of breaches within 60 days (HIPAA-AI-008)",
+      "✓ Review and update risk analysis annually (HIPAA-AI-009)",
+      "✓ Verify BAAs are current when LLM vendors update terms",
+      "✓ Verify audit trail integrity: run.verify()"
+    ]}
+  ],
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2026-06-17",
+      "changes": ["Initial release — 12 controls covering PHI de-identification, BAA requirements, minimum necessary, access controls, audit controls, integrity, transmission security, breach notification, risk analysis, workforce training, human oversight, and contingency planning"]
+    }
+  ]
+}

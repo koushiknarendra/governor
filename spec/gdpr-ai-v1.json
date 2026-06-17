@@ -1,0 +1,452 @@
+{
+  "$schema": "https://svitch.ai/schemas/gdpr-ai/v1",
+  "spec_id": "GDPR-AI-SPEC-001",
+  "version": "1.0.0",
+  "title": "GDPR-AI Compliance Specification v1.0",
+  "description": "Machine-readable specification defining what the EU General Data Protection Regulation (GDPR) requires from AI systems that process personal data of EU/EEA data subjects. Each control maps to a GDPR article, carries verifiable assertions, and notes the applicable penalty tier.",
+  "authors": ["Svitch (https://svitch.ai)"],
+  "license": "CC-BY-4.0",
+  "effective_date": "2018-05-25",
+  "jurisdiction": "EU/EEA",
+  "regulation": {
+    "name": "General Data Protection Regulation",
+    "short_name": "GDPR",
+    "reference": "Regulation (EU) 2016/679",
+    "in_force_date": "2018-05-25",
+    "enforced_by": "National Data Protection Authorities (DPAs) + EDPB",
+    "url": "https://gdpr-info.eu"
+  },
+  "eu_ai_act_note": "The EU AI Act (2024/1689) introduces additional obligations for high-risk AI systems. This spec covers GDPR obligations; AI Act controls are in ai-act-v1.json.",
+  "penalty_tiers": [
+    {
+      "tier": "standard",
+      "max_eur": 10000000,
+      "max_revenue_pct": 2,
+      "description": "Lower tier — Art. 83(4): processor obligations, DPA records, child consent, DPO"
+    },
+    {
+      "tier": "severe",
+      "max_eur": 20000000,
+      "max_revenue_pct": 4,
+      "description": "Upper tier — Art. 83(5): core principles, data subject rights, lawful basis, transfers"
+    }
+  ],
+  "controls": [
+    {
+      "id": "GDPR-AI-001",
+      "category": "lawful_basis",
+      "title": "Establish lawful basis before AI processes personal data",
+      "article": "Art. 6",
+      "requirement_level": "MUST",
+      "applies_to": ["all_ai_systems"],
+      "description": "Every AI processing of personal data requires one of six lawful bases: (a) consent, (b) contract performance, (c) legal obligation, (d) vital interests, (e) public task, (f) legitimate interests. For most commercial AI applications, this means explicit consent (Art. 6(1)(a)) or legitimate interests (Art. 6(1)(f)) with a balancing test.",
+      "assertions": [
+        "lawful_basis_documented_before_processing",
+        "lawful_basis_is_one_of_six_gdpr_grounds",
+        "legitimate_interests_assessment_exists_if_using_LIA",
+        "lawful_basis_recorded_in_records_of_processing"
+      ],
+      "implementation": {
+        "svitch_feature": "consent-ledger",
+        "sdk_method": "svitch.consent.grant(data_subject_id, purpose, lawful_basis)"
+      },
+      "penalty_tier": "severe",
+      "audit_event_type": "lawful_basis_check"
+    },
+    {
+      "id": "GDPR-AI-002",
+      "category": "consent",
+      "title": "GDPR-compliant consent for AI processing",
+      "article": "Art. 7",
+      "requirement_level": "MUST",
+      "condition": "When consent is the lawful basis",
+      "applies_to": ["consent_based_ai_systems"],
+      "description": "Consent must be: freely given (no bundling with service terms), specific (per-purpose, not blanket AI consent), informed (clear explanation of AI processing), unambiguous (explicit opt-in, no pre-ticked boxes). Consent must be as easy to withdraw as to give. Proof of consent must be maintained.",
+      "assertions": [
+        "consent_not_bundled_with_terms_of_service",
+        "consent_is_purpose_specific",
+        "consent_is_granular_for_different_ai_uses",
+        "withdrawal_as_easy_as_consent",
+        "consent_proof_maintained",
+        "no_pre_ticked_boxes"
+      ],
+      "implementation": {
+        "svitch_feature": "consent-ledger",
+        "api_endpoint": "/consent/grant",
+        "sdk_method": "svitch.consent.grant(data_subject_id, purpose, lawful_basis='consent')"
+      },
+      "penalty_tier": "severe",
+      "audit_event_type": "consent_grant"
+    },
+    {
+      "id": "GDPR-AI-003",
+      "category": "data_minimisation",
+      "title": "Redact personal data before LLM API calls (data minimisation)",
+      "article": "Art. 5(1)(c) + Art. 25",
+      "requirement_level": "MUST",
+      "applies_to": ["all_ai_systems"],
+      "description": "Only personal data that is adequate, relevant, and limited to what is necessary for the specified purpose may be processed. Data protection by design (Art. 25) requires that AI systems default to minimum data processing. Sending full personal data in LLM prompts when only a summary is needed violates this principle.",
+      "assertions": [
+        "pii_detected_before_llm_api_call",
+        "unnecessary_pii_stripped_from_prompt",
+        "redaction_logged",
+        "data_minimisation_default_enabled"
+      ],
+      "pii_entity_types_covered": [
+        "IBAN", "UK_NIN", "EU_PASSPORT", "CREDIT_CARD",
+        "EMAIL", "IPV4", "IPV6", "PHONE_INTL",
+        "AADHAAR", "PAN", "SSN_US"
+      ],
+      "implementation": {
+        "svitch_feature": "pii-shield",
+        "api_endpoint": "/redact",
+        "sdk_method": "svitch.redact(text, locale='eu')",
+        "sdk_wrap": "svitch.wrap(client)"
+      },
+      "penalty_tier": "severe",
+      "audit_event_type": "pii_redaction"
+    },
+    {
+      "id": "GDPR-AI-004",
+      "category": "transparency",
+      "title": "Transparency notice for AI processing",
+      "article": "Art. 13–14",
+      "requirement_level": "MUST",
+      "applies_to": ["all_ai_systems"],
+      "description": "Data subjects must be informed (at collection time or within one month if data obtained indirectly) of: identity of the controller, purposes and legal basis, categories of personal data, recipients including LLM API vendors, retention periods, data subject rights, and the existence of automated decision-making.",
+      "assertions": [
+        "privacy_notice_provided",
+        "notice_covers_ai_processing_purposes",
+        "notice_names_llm_vendor_categories",
+        "notice_describes_automated_decision_making",
+        "notice_includes_data_subject_rights",
+        "notice_available_before_processing"
+      ],
+      "implementation": {
+        "note": "Legal/content control. Svitch audit trail proves notice was sent.",
+        "svitch_feature": "consent-ledger",
+        "sdk_method": "svitch.consent.send_notice(data_subject_id, notice_payload)"
+      },
+      "penalty_tier": "severe",
+      "audit_event_type": "notice_sent"
+    },
+    {
+      "id": "GDPR-AI-005",
+      "category": "data_subject_rights",
+      "title": "Right of access to AI processing records",
+      "article": "Art. 15",
+      "requirement_level": "MUST",
+      "applies_to": ["all_ai_systems"],
+      "description": "Data subjects have the right to obtain confirmation of whether their data is being processed by AI systems, and a copy of the personal data processed. The response must include: purposes of AI processing, categories of data, recipients (LLM vendors), retention periods, and the existence of automated decision-making with meaningful information about the logic involved.",
+      "assertions": [
+        "access_request_mechanism_exists",
+        "response_within_one_month",
+        "response_includes_ai_processing_details",
+        "response_names_llm_vendor_categories",
+        "response_describes_automated_decision_logic"
+      ],
+      "implementation": {
+        "svitch_feature": "compliance-engine",
+        "api_endpoint": "/report/data-subject/{id}",
+        "response_deadline_days": 30
+      },
+      "penalty_tier": "severe",
+      "audit_event_type": "access_request"
+    },
+    {
+      "id": "GDPR-AI-006",
+      "category": "data_subject_rights",
+      "title": "Right to erasure ('right to be forgotten')",
+      "article": "Art. 17",
+      "requirement_level": "MUST",
+      "applies_to": ["all_ai_systems"],
+      "description": "Data subjects may request erasure of personal data when: (a) data is no longer necessary, (b) consent is withdrawn, (c) they object and there are no overriding grounds, (d) data has been unlawfully processed. Erasure must propagate to LLM fine-tuning datasets, vector databases, RAG stores, and all sub-processors.",
+      "assertions": [
+        "erasure_mechanism_exists",
+        "erasure_confirmed_within_one_month",
+        "erasure_propagates_to_sub_processors",
+        "erasure_audit_record_retained"
+      ],
+      "implementation": {
+        "svitch_feature": "consent-ledger",
+        "api_endpoint": "/data-subject/{id}/erase",
+        "response_deadline_days": 30
+      },
+      "penalty_tier": "severe",
+      "audit_event_type": "erasure_request"
+    },
+    {
+      "id": "GDPR-AI-007",
+      "category": "automated_decisions",
+      "title": "Right to human review of automated AI decisions",
+      "article": "Art. 22",
+      "requirement_level": "MUST",
+      "applies_to": ["ai_systems_making_significant_decisions"],
+      "significant_decision_examples": [
+        "credit scoring or loan decisions",
+        "insurance premium calculation",
+        "recruitment screening",
+        "medical diagnosis assistance",
+        "performance evaluation",
+        "targeted advertising with significant effects"
+      ],
+      "description": "Data subjects have the right not to be subject to decisions based solely on automated processing that produce legal or similarly significant effects. If automated AI decisions are used, the controller MUST: (a) offer a meaningful human review mechanism, (b) allow data subjects to contest the decision, (c) explain the logic involved.",
+      "assertions": [
+        "human_review_mechanism_offered",
+        "decision_logic_explainable_on_request",
+        "contest_mechanism_exists",
+        "purely_automated_high_stakes_decisions_prohibited_without_safeguards"
+      ],
+      "implementation": {
+        "svitch_feature": "agent-tracer",
+        "sdk_method": "run.human_checkpoint(question, approved, reviewer_id)"
+      },
+      "penalty_tier": "severe",
+      "audit_event_type": "human_checkpoint"
+    },
+    {
+      "id": "GDPR-AI-008",
+      "category": "audit_trail",
+      "title": "Records of processing activities covering AI systems",
+      "article": "Art. 30",
+      "requirement_level": "MUST",
+      "applies_to": ["all_ai_systems"],
+      "description": "Controllers and processors with 250+ employees (or processing that is not occasional) must maintain records of processing activities. For AI systems this must include: purposes of AI processing, data subject categories, LLM vendor names and locations, data retention periods, security measures.",
+      "assertions": [
+        "records_of_processing_maintained",
+        "records_include_ai_purpose_and_legal_basis",
+        "records_include_llm_vendor_names_and_locations",
+        "records_include_retention_periods",
+        "records_available_to_supervisory_authority_on_request"
+      ],
+      "implementation": {
+        "svitch_feature": "compliance-engine",
+        "api_endpoint": "/report/article-30"
+      },
+      "penalty_tier": "standard",
+      "audit_event_type": "processing_record"
+    },
+    {
+      "id": "GDPR-AI-009",
+      "category": "security",
+      "title": "Appropriate technical security for AI-processed personal data",
+      "article": "Art. 32",
+      "requirement_level": "MUST",
+      "applies_to": ["all_ai_systems"],
+      "description": "Controllers must implement appropriate technical measures for AI systems, including: (a) pseudonymisation and encryption, (b) confidentiality, integrity, and availability of processing systems, (c) ability to restore availability on incident, (d) regular testing of security measures. PII redaction before LLM API calls is a primary technical safeguard.",
+      "assertions": [
+        "personal_data_encrypted_in_transit_tls_12_plus",
+        "personal_data_encrypted_at_rest",
+        "pii_redacted_before_external_llm_api_calls",
+        "audit_logs_integrity_protected",
+        "security_tested_regularly"
+      ],
+      "implementation": {
+        "svitch_feature": "pii-shield",
+        "note": "svitch.wrap() ensures no PII reaches external LLM APIs."
+      },
+      "penalty_tier": "standard",
+      "audit_event_type": "security_assessment"
+    },
+    {
+      "id": "GDPR-AI-010",
+      "category": "security",
+      "title": "Personal data breach detection and 72-hour notification",
+      "article": "Art. 33–34",
+      "requirement_level": "MUST",
+      "applies_to": ["all_ai_systems"],
+      "description": "Any breach of personal data processed by AI systems must be: (a) notified to the supervisory authority within 72 hours of discovery (Art. 33), (b) communicated to affected data subjects without undue delay if high risk to rights and freedoms (Art. 34). An AI system audit trail enables precise determination of which data subjects are affected.",
+      "assertions": [
+        "breach_detection_mechanism_exists",
+        "supervisory_authority_notified_within_72_hours",
+        "high_risk_breach_communicated_to_data_subjects",
+        "breach_documented_with_scope_and_remediation"
+      ],
+      "implementation": {
+        "svitch_feature": "agent-tracer",
+        "sdk_method": "run.verify() — chain integrity check to detect tampering"
+      },
+      "penalty_tier": "standard",
+      "audit_event_type": "breach_notification"
+    },
+    {
+      "id": "GDPR-AI-011",
+      "category": "dpia",
+      "title": "Data Protection Impact Assessment for high-risk AI",
+      "article": "Art. 35",
+      "requirement_level": "MUST",
+      "applies_to": ["high_risk_ai_systems"],
+      "high_risk_criteria": [
+        "Systematic profiling with legal or significant effects",
+        "Large-scale processing of special category data",
+        "Systematic monitoring of publicly accessible areas",
+        "Novel technology with unknown privacy risks",
+        "Processing that prevents access to services",
+        "Large-scale criminal conviction data processing"
+      ],
+      "description": "A DPIA is mandatory before processing that is likely to result in high risk to data subjects. For AI systems, high-risk triggers include: profiling at scale, processing special category data (health, biometric, political), automated decision-making with significant effects, or novel AI applications. The DPIA must assess necessity, risks, and mitigations.",
+      "assertions": [
+        "dpia_conducted_before_high_risk_ai_deployment",
+        "dpia_covers_necessity_and_proportionality",
+        "dpia_identifies_risks_to_data_subject_rights",
+        "dpia_documents_mitigations",
+        "supervisory_authority_consulted_if_residual_risk_remains"
+      ],
+      "implementation": {
+        "svitch_feature": "compliance-engine",
+        "api_endpoint": "/report/dpia-gdpr"
+      },
+      "penalty_tier": "standard",
+      "audit_event_type": "dpia_completion"
+    },
+    {
+      "id": "GDPR-AI-012",
+      "category": "processor_agreements",
+      "title": "Data Processing Agreement with LLM API vendors",
+      "article": "Art. 28",
+      "requirement_level": "MUST",
+      "applies_to": ["all_ai_systems_using_external_llm_apis"],
+      "description": "Any LLM API provider processing personal data on the controller's behalf is a Data Processor. A GDPR-compliant Data Processing Agreement (DPA) must be in place before transmitting personal data. The DPA must include the Art. 28(3) mandatory clauses, including prohibition on processing for the processor's own purposes.",
+      "assertions": [
+        "dpa_exists_with_each_llm_vendor",
+        "dpa_includes_art_28_3_mandatory_clauses",
+        "dpa_prohibits_llm_training_on_customer_data",
+        "dpa_requires_sub_processor_approval",
+        "dpa_requires_breach_notification_within_72_hours",
+        "dpa_specifies_deletion_on_termination"
+      ],
+      "implementation": {
+        "note": "Legal/contractual control. Check vendor DPAs: OpenAI (openai.com/policies/data-processing-addendum), Anthropic (anthropic.com/legal/data-processing-addendum), Google (cloud.google.com/terms/data-processing-addendum).",
+        "best_practice": "Zero-retention API contracts or private inference (Svitch Enclave) for sensitive data"
+      },
+      "penalty_tier": "standard",
+      "audit_event_type": "processor_agreement"
+    },
+    {
+      "id": "GDPR-AI-013",
+      "category": "cross_border_transfers",
+      "title": "Lawful transfer mechanism for personal data sent to non-EEA LLM APIs",
+      "article": "Art. 44–49",
+      "requirement_level": "MUST",
+      "condition": "When LLM API servers are outside EEA (e.g., US-based OpenAI, Anthropic)",
+      "applies_to": ["ai_systems_using_non_eea_llm_apis"],
+      "description": "Transfer of EU personal data outside the EEA requires one of: (a) adequacy decision for the destination country, (b) Standard Contractual Clauses (SCCs), (c) Binding Corporate Rules, (d) explicit consent for occasional transfers. For US LLM APIs, the EU-US Data Privacy Framework (adequacy, July 2023) or SCCs are the primary mechanisms.",
+      "assertions": [
+        "transfer_mechanism_documented",
+        "sccs_in_place_OR_adequacy_decision_applies",
+        "transfer_impact_assessment_conducted",
+        "no_sensitive_data_in_transfers_without_explicit_consent"
+      ],
+      "implementation": {
+        "svitch_feature": "pii-shield",
+        "note": "svitch.wrap(client, locale='eu') strips EU PII before prompts reach US APIs.",
+        "sdk_method": "svitch.wrap(client, locale='eu')"
+      },
+      "penalty_tier": "severe",
+      "audit_event_type": "cross_border_transfer"
+    },
+    {
+      "id": "GDPR-AI-014",
+      "category": "children",
+      "title": "Parental consent for AI processing of children's data",
+      "article": "Art. 8",
+      "requirement_level": "MUST",
+      "applies_to": ["ai_systems_accessible_to_minors"],
+      "description": "For information society services directed at children under 16 (or lower age set by member state, minimum 13), processing consent requires parental or guardian authorisation. AI systems must verify user age and obtain appropriate consent before processing children's data.",
+      "assertions": [
+        "age_verification_before_processing",
+        "parental_consent_for_under_16",
+        "age_threshold_respects_member_state_minimum",
+        "reasonable_efforts_made_to_verify_parental_consent"
+      ],
+      "implementation": {
+        "svitch_feature": "consent-ledger",
+        "sdk_method": "svitch.consent.grant(data_subject_id, purpose, is_minor=True, guardian_id=...)"
+      },
+      "penalty_tier": "severe",
+      "audit_event_type": "parental_consent_grant"
+    },
+    {
+      "id": "GDPR-AI-015",
+      "category": "special_categories",
+      "title": "Explicit consent for special category data in AI prompts",
+      "article": "Art. 9",
+      "requirement_level": "MUST",
+      "condition": "When AI processes health, biometric, racial, political, or religious data",
+      "applies_to": ["ai_systems_processing_sensitive_data"],
+      "special_category_examples": [
+        "health or medical data in clinical AI",
+        "biometric data in identity AI",
+        "racial or ethnic origin",
+        "political opinions",
+        "trade union membership",
+        "genetic data"
+      ],
+      "description": "Processing of special category data is prohibited unless one of ten conditions applies. For AI systems, the most relevant are: (a) explicit consent (not just consent), (b) health purposes under professional secrecy, (c) substantial public interest. Processing special category data in LLM prompts requires explicit consent recorded separately from general consent.",
+      "assertions": [
+        "explicit_consent_obtained_for_special_category_data",
+        "special_category_consent_separate_from_general_consent",
+        "special_category_data_identified_and_labelled_before_ai_processing",
+        "additional_safeguards_in_place"
+      ],
+      "implementation": {
+        "svitch_feature": "pii-shield + consent-ledger",
+        "note": "Detect special category data with svitch.detect() before processing. Require explicit consent flag."
+      },
+      "penalty_tier": "severe",
+      "audit_event_type": "special_category_consent"
+    }
+  ],
+  "pii_entity_types": {
+    "gdpr_eu": [
+      { "type": "IBAN",        "description": "International Bank Account Number", "special_category": false, "examples": ["GB29NWBK60161331926819"] },
+      { "type": "UK_NIN",      "description": "UK National Insurance Number",     "special_category": false, "examples": ["AB123456D"] },
+      { "type": "EU_PASSPORT", "description": "EU passport number (keyword-anchored)", "special_category": false, "examples": ["P12345678"] },
+      { "type": "CREDIT_CARD", "description": "Payment card (Luhn-validated)",   "special_category": false, "examples": ["4532015112830366"] }
+    ],
+    "global": [
+      { "type": "EMAIL", "description": "Email address",  "special_category": false },
+      { "type": "IPV4",  "description": "IPv4 address",   "special_category": false },
+      { "type": "IPV6",  "description": "IPv6 address",   "special_category": false }
+    ],
+    "special_categories_requiring_art9_consent": [
+      { "type": "HEALTH_DATA",    "description": "Clinical notes, diagnoses, prescriptions, lab results" },
+      { "type": "BIOMETRIC",      "description": "Facial recognition data, fingerprints" },
+      { "type": "GENETIC",        "description": "DNA sequences, genetic test results" },
+      { "type": "RACIAL_ETHNIC",  "description": "Racial or ethnic origin indicators" },
+      { "type": "POLITICAL",      "description": "Political opinions, party membership" },
+      { "type": "TRADE_UNION",    "description": "Trade union membership" }
+    ]
+  },
+  "compliance_checklist": [
+    { "phase": "Before deployment", "items": [
+      "✓ Document lawful basis for each AI processing purpose",
+      "✓ Conduct DPIA for high-risk AI (profiling, special categories, novel tech)",
+      "✓ Sign DPAs with all LLM API vendors (OpenAI, Anthropic, Google, etc.)",
+      "✓ Verify SCC or adequacy decision for non-EEA LLM APIs",
+      "✓ Publish privacy notice covering AI processing and LLM vendors",
+      "✓ Implement svitch.wrap() on all LLM clients",
+      "✓ Set up data subject rights fulfilment process (access, erasure, portability)"
+    ]},
+    { "phase": "At runtime", "items": [
+      "✓ Check lawful basis before AI processes personal data",
+      "✓ Redact EU PII before all LLM API calls: svitch.wrap(client, locale='eu')",
+      "✓ Log every LLM call with pii_redacted=true in audit trail",
+      "✓ Offer human review for automated decisions with significant effects",
+      "✓ Block under-16 access without parental consent"
+    ]},
+    { "phase": "Ongoing", "items": [
+      "✓ Respond to data subject requests within 30 days",
+      "✓ Report breaches to supervisory authority within 72 hours",
+      "✓ Review DPAs annually and when vendor terms change",
+      "✓ Update Art. 30 records when new AI systems deployed"
+    ]}
+  ],
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2026-06-17",
+      "changes": ["Initial release — 15 controls covering lawful basis, consent, minimisation, transparency, data subject rights, Art. 22 automated decisions, security, breach, DPIA, processor agreements, cross-border transfers, children, special categories"]
+    }
+  ]
+}

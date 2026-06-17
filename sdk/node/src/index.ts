@@ -1,5 +1,7 @@
 import * as P from './patterns.js';
 
+export { SvitchTracer, RunContext } from './tracer.js';
+
 // ── Public types ──────────────────────────────────────────────────────────────
 
 export interface Entity {
