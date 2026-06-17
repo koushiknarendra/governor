@@ -11,20 +11,92 @@ const CODE_FONT = "'JetBrains Mono', monospace";
 const DISPLAY   = "'Space Grotesk', sans-serif";
 
 const DEMO_TEXT =
-  "Please verify customer Aadhaar 4123 8890 0123 and PAN ABCDE1234F. Refund via UPI ravi@okhdfc, bank IFSC HDFC0001234. Contact 9876543210.";
+  "Verify Aadhaar 4123 8890 0123 and PAN ABCDE1234F. Transfer IBAN GB29NWBK60161331926819. SSN 123-45-6789 on file. UPI ravi@okhdfc, mobile 9876543210.";
 
-const CODE_TEXT = [
-  "from svitch import Svitch",
-  "from openai import OpenAI",
-  "",
-  "client = Svitch.wrap(OpenAI())   # one line. done.",
-  "# PII redacted · queries routed · every call logged",
-  "",
-  "client.chat.completions.create(",
-  '    model="auto",               # Svitch picks the cheapest fit',
-  '    messages=[{"role": "user", "content": user_input}],',
-  ")",
-].join("\n");
+const CODE_TABS = [
+  {
+    id: "shield",
+    label: "Shield",
+    copyText: [
+      "from svitch import redact",
+      "",
+      'result = redact(',
+      '    "Aadhaar 2345 6789 0123 · IBAN GB29NWBK60161331926819 · SSN 123-45-6789"',
+      ")",
+      "# result.text  → '[AADHAAR] · [IBAN] · [SSN_US]'",
+      "# result.count → 3",
+      "",
+      "# Zero network — runs locally, no data sent anywhere",
+    ].join("\n"),
+    lines: [
+      [{ c: ACCENT, t: "from" }, { t: " svitch " }, { c: ACCENT, t: "import" }, { t: " redact" }],
+      [{ t: " " }],
+      [{ t: "result = redact(" }],
+      [{ t: '    ' }, { c: "#5C9E5F", t: '"Aadhaar 2345 6789 0123 · IBAN GB29NWBK60161331926819 · SSN 123-45-6789"' }],
+      [{ t: ")" }],
+      [{ c: "#9A9A92", t: "# result.text  → '[AADHAAR] · [IBAN] · [SSN_US]'" }],
+      [{ c: "#9A9A92", t: "# result.count → 3" }],
+      [{ t: " " }],
+      [{ c: "#9A9A92", t: "# Zero network — runs locally, no data sent anywhere" }],
+    ] as Array<Array<{ t: string; c?: string }>>,
+  },
+  {
+    id: "router",
+    label: "Router",
+    copyText: [
+      "import svitch, openai, anthropic",
+      "",
+      "router = svitch.Router()",
+      'router.add("openai",    openai.OpenAI())',
+      'router.add("anthropic", anthropic.Anthropic())',
+      "",
+      "# model='auto' → complexity-scored routing",
+      "response = router.chat(messages, model='auto')",
+      "print(response.provider, response.tier)",
+      "# → 'anthropic'  'complex'",
+    ].join("\n"),
+    lines: [
+      [{ c: ACCENT, t: "import" }, { t: " svitch, openai, anthropic" }],
+      [{ t: " " }],
+      [{ t: "router = svitch.Router()" }],
+      [{ t: 'router.add(' }, { c: "#5C9E5F", t: '"openai"' }, { t: ",    openai.OpenAI())" }],
+      [{ t: 'router.add(' }, { c: "#5C9E5F", t: '"anthropic"' }, { t: ", anthropic.Anthropic())" }],
+      [{ t: " " }],
+      [{ c: "#9A9A92", t: "# model='auto' → complexity-scored routing" }],
+      [{ t: "response = router.chat(messages, model=" }, { c: "#5C9E5F", t: "'auto'" }, { t: ")" }],
+      [{ t: "print(response.provider, response.tier)" }],
+      [{ c: "#9A9A92", t: "# → 'anthropic'  'complex'" }],
+    ] as Array<Array<{ t: string; c?: string }>>,
+  },
+  {
+    id: "langchain",
+    label: "LangChain",
+    copyText: [
+      "from svitch.langchain import SvitchCallbackHandler",
+      "from langchain_openai import ChatOpenAI",
+      "",
+      "handler = SvitchCallbackHandler(agent_id='loan-processor')",
+      "llm = ChatOpenAI(model='gpt-4o', callbacks=[handler])",
+      "",
+      "# PII redacted → audit trail recorded → model called",
+      "llm.invoke([HumanMessage(content='Verify Aadhaar 2345 6789 0123')])",
+      "",
+      "# LangGraph: graph.invoke(state, config={'callbacks': [handler]})",
+    ].join("\n"),
+    lines: [
+      [{ c: ACCENT, t: "from" }, { t: " svitch.langchain " }, { c: ACCENT, t: "import" }, { t: " SvitchCallbackHandler" }],
+      [{ c: ACCENT, t: "from" }, { t: " langchain_openai " }, { c: ACCENT, t: "import" }, { t: " ChatOpenAI" }],
+      [{ t: " " }],
+      [{ t: "handler = SvitchCallbackHandler(agent_id=" }, { c: "#5C9E5F", t: "'loan-processor'" }, { t: ")" }],
+      [{ t: "llm = ChatOpenAI(model=" }, { c: "#5C9E5F", t: "'gpt-4o'" }, { t: ", callbacks=[handler])" }],
+      [{ t: " " }],
+      [{ c: "#9A9A92", t: "# PII redacted → audit trail recorded → model called" }],
+      [{ t: "llm.invoke([HumanMessage(content=" }, { c: "#5C9E5F", t: "'Verify Aadhaar 2345 6789 0123'" }, { t: ")])" }],
+      [{ t: " " }],
+      [{ c: "#9A9A92", t: "# LangGraph: graph.invoke(state, config={'callbacks': [handler]})" }],
+    ] as Array<Array<{ t: string; c?: string }>>,
+  },
+];
 
 // ─── PII Detection ────────────────────────────────────────────────────────────
 interface Entity {
@@ -36,12 +108,23 @@ interface Entity {
   pos: string;
 }
 
-const DETECTORS: Array<{ type: string; re: RegExp; mask: (v: string) => string }> = [
-  { type: "AADHAAR", re: /\b\d{4}\s\d{4}\s\d{4}\b/g,        mask: (v) => "XXXX XXXX " + v.replace(/\s/g, "").slice(-4) },
-  { type: "PAN",     re: /\b[A-Z]{5}[0-9]{4}[A-Z]\b/g,      mask: (v) => v.slice(0, 2) + "XXX" + v.slice(5) },
-  { type: "IFSC",    re: /\b[A-Z]{4}0[A-Z0-9]{6}\b/g,       mask: (v) => v },
-  { type: "UPI",     re: /\b[a-zA-Z0-9._-]{2,}@[a-zA-Z]{2,}\b/g, mask: (v) => { const [u, d] = v.split("@"); return u.slice(0, 3) + "***@" + d; } },
-  { type: "PHONE",   re: /\b[6-9]\d{9}\b/g,                  mask: (v) => v.slice(0, 2) + "XXXX" + v.slice(-4) },
+function luhn(n: string): boolean {
+  const d = n.replace(/\D/g, "").split("").map(Number);
+  if (d.length < 13) return false;
+  let t = 0;
+  d.reverse().forEach((x, i) => { const v = i % 2 === 0 ? x : x * 2; t += v > 9 ? v - 9 : v; });
+  return t % 10 === 0;
+}
+
+const DETECTORS: Array<{ type: string; re: RegExp; mask: (v: string) => string; validate?: (v: string) => boolean }> = [
+  { type: "AADHAAR",     re: /\b\d{4}\s\d{4}\s\d{4}\b/g,        mask: (v) => "XXXX XXXX " + v.replace(/\s/g, "").slice(-4) },
+  { type: "PAN",         re: /\b[A-Z]{5}[0-9]{4}[A-Z]\b/g,      mask: (v) => v.slice(0, 2) + "XXX" + v.slice(5) },
+  { type: "IFSC",        re: /\b[A-Z]{4}0[A-Z0-9]{6}\b/g,       mask: (v) => v },
+  { type: "UPI",         re: /\b[a-zA-Z0-9._-]{2,}@(?:okicici|okhdfc|oksbi|okaxis|paytm|gpay|phonepe|ybl|apl|ibl)\b/gi, mask: (v) => { const [u, d] = v.split("@"); return u.slice(0, 3) + "***@" + d; } },
+  { type: "MOBILE_IN",   re: /\b[6-9]\d{9}\b/g,                  mask: (v) => v.slice(0, 2) + "XXXX" + v.slice(-4) },
+  { type: "IBAN",        re: /\b((?:GB|DE|FR|ES|IT|NL|BE|AT|CH|SE|DK|NO|FI|PL|PT|GR|IE|SA|AE|QA)[0-9]{2}[A-Z0-9]{4,})\b/g, mask: (v) => v.slice(0, 4) + "X".repeat(Math.max(0, v.length - 8)) + v.slice(-4) },
+  { type: "SSN_US",      re: /\b(?!000-|666-|9\d\d-)(\d{3}-\d{2}-\d{4})\b/g, mask: (v) => "XXX-XX-" + v.slice(-4) },
+  { type: "CREDIT_CARD", re: /\b(4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12})\b/g, mask: (v) => "XXXX-XXXX-XXXX-" + v.slice(-4), validate: (v) => luhn(v) },
 ];
 
 function detectAll(text: string): Entity[] {
@@ -50,7 +133,9 @@ function detectAll(text: string): Entity[] {
     const re = new RegExp(d.re.source, d.re.flags);
     let m: RegExpExecArray | null;
     while ((m = re.exec(text)) !== null) {
-      found.push({ type: d.type, value: m[0], start: m.index, end: m.index + m[0].length, masked: d.mask(m[0]), pos: `chars ${m.index}–${m.index + m[0].length}` });
+      const val = m[0];
+      if (d.validate && !d.validate(val)) continue;
+      found.push({ type: d.type, value: val, start: m.index, end: m.index + val.length, masked: d.mask(val), pos: `chars ${m.index}–${m.index + val.length}` });
     }
   });
   found.sort((a, b) => a.start - b.start);
@@ -78,16 +163,18 @@ function HeroTerminal({ step }: { step: number }) {
     <span style={{ borderBottom: `1px solid ${ACCENT}`, background: ACCENT_BG }}>{children}</span>
   );
   const lines: ReactNode[] = [
-    <div key={0}><span style={{ color: "#9A9A92" }}>$ </span>svitch shield wrap openai</div>,
-    <div key={1} style={{ color: ACCENT }}>✓ client wrapped · context preserved</div>,
+    <div key={0}><span style={{ color: "#9A9A92" }}>$ </span>svitch shield scan prompt</div>,
+    <div key={1} style={{ color: ACCENT }}>✓ scanning · India · EU · US</div>,
     <div key={2} style={{ height: 10 }} />,
-    <div key={3} style={{ color: "#9A9A92" }}>→ scanning outbound prompt</div>,
-    <div key={4} style={{ lineHeight: 1.8 }}>
-      {`  "verify Aadhaar `}<Hl>4123 8890 0123</Hl>{", PAN "}<Hl>ABCDE1234F</Hl>{","}
-      <br />{"   UPI "}<Hl>ravi@okhdfc</Hl>{`"`}
+    <div key={3} style={{ color: "#9A9A92" }}>→ 5 entities found</div>,
+    <div key={4} style={{ lineHeight: 1.9, fontSize: 12 }}>
+      {"  "}<Hl>4123 8890 0123</Hl>{" AADHAAR"}<br />
+      {"  "}<Hl>ABCDE1234F</Hl>{"    PAN"}<br />
+      {"  "}<Hl>GB29NWBK…6819</Hl>{" IBAN"}<br />
+      {"  "}<Hl>123-45-6789</Hl>{"   SSN_US"}
     </div>,
     <div key={5} style={{ height: 10 }} />,
-    <div key={6}><span style={{ color: ACCENT }}>⚠ 3 entities redacted</span>{" · 0 bytes to model"}</div>,
+    <div key={6}><span style={{ color: ACCENT }}>⚠ 5 redacted</span>{" · 0 bytes to model"}</div>,
   ];
   const visible = lines.slice(0, Math.min(step, lines.length));
   return (
@@ -98,22 +185,11 @@ function HeroTerminal({ step }: { step: number }) {
   );
 }
 
-function CodeBlock() {
-  const lines: Array<Array<{ t: string; c?: string }>> = [
-    [{ c: ACCENT, t: "from" }, { t: " svitch " }, { c: ACCENT, t: "import" }, { t: " Svitch" }],
-    [{ c: ACCENT, t: "from" }, { t: " openai " }, { c: ACCENT, t: "import" }, { t: " OpenAI" }],
-    [{ t: " " }],
-    [{ t: "client = Svitch.wrap(OpenAI())   " }, { c: "#9A9A92", t: "# one line. done." }],
-    [{ c: "#9A9A92", t: "# PII redacted · queries routed · every call logged" }],
-    [{ t: " " }],
-    [{ t: "client.chat.completions.create(" }],
-    [{ t: "    model=" }, { c: ACCENT, t: '"auto"' }, { t: ",               " }, { c: "#9A9A92", t: "# Svitch picks the cheapest fit" }],
-    [{ t: '    messages=[{"role": "user", "content": user_input}],' }],
-    [{ t: ")" }],
-  ];
+function CodeBlock({ tabIdx }: { tabIdx: number }) {
+  const tab = CODE_TABS[tabIdx];
   return (
     <>
-      {lines.map((line, i) => (
+      {tab.lines.map((line, i) => (
         <div key={i}>
           {line.map((part, j) => <span key={j} style={part.c ? { color: part.c } : undefined}>{part.t}</span>)}
         </div>
@@ -204,6 +280,7 @@ export default function Home() {
   const [copied,   setCopied]   = useState(false);
   const [heroStep, setHeroStep] = useState(0);
   const [wmSize,   setWmSize]   = useState("200px");
+  const [codeTab,  setCodeTab]  = useState(0);
 
   const canvasRef  = useRef<HTMLCanvasElement>(null);
   const wordmarkRef = useRef<HTMLDivElement>(null);
@@ -240,11 +317,11 @@ export default function Home() {
   const onDetect = useCallback(() => setResults(detectAll(input)), [input]);
   const onClear  = useCallback(() => setResults(null), []);
   const copyCode = useCallback(() => {
-    try { navigator.clipboard?.writeText(CODE_TEXT); } catch {}
+    try { navigator.clipboard?.writeText(CODE_TABS[codeTab].copyText); } catch {}
     setCopied(true);
     if (copyTimer.current) clearTimeout(copyTimer.current);
     copyTimer.current = setTimeout(() => setCopied(false), 1400);
-  }, []);
+  }, [codeTab]);
 
   return (
     <div style={{ background: "#FAFAF8", minHeight: "100vh", fontFamily: "'Satoshi', system-ui, sans-serif" }}>
@@ -438,21 +515,40 @@ export default function Home() {
             <div>
               <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.12em", color: "#71716B", marginBottom: 18 }}>THE SDK</div>
               <h2 className="r-h2-code">
-                Three lines.<br />Zero <span style={{ color: ACCENT }}>friction.</span>
+                One import.<br />Three <span style={{ color: ACCENT }}>superpowers.</span>
               </h2>
               <p style={{ fontSize: 16, lineHeight: 1.65, color: "#71716B", margin: "0 0 18px" }}>
                 Drop Svitch in front of the SDK you already use. No prompt rewrites, no proxy config, no new mental model.
               </p>
               <p style={{ fontFamily: MONO, fontSize: 12, lineHeight: 2, color: "#71716B", margin: 0 }}>
-                OpenAI · Anthropic · Gemini · Llama<br />+ any OpenAI-compatible endpoint
+                OpenAI · Anthropic · Gemini · Llama<br />LangChain · LangGraph · CrewAI
               </p>
             </div>
             <div style={{ position: "relative", background: "#F4F3F0", border: "1px solid #E8E8E4", borderRadius: 4, minWidth: 0, overflow: "hidden" }}>
-              <button onClick={copyCode} style={{ position: "absolute", top: 12, right: 12, fontFamily: MONO, fontSize: 11, color: "#71716B", background: "#FFFFFF", border: "1px solid #E8E8E4", borderRadius: 3, padding: "5px 10px", cursor: "pointer" }}>
-                {copied ? "copied" : "copy"}
-              </button>
-              <pre style={{ margin: 0, padding: "24px 22px", overflowX: "auto", WebkitOverflowScrolling: "touch" as const, fontFamily: CODE_FONT, fontSize: 13, lineHeight: 1.7, color: "#0D0D0B" }}>
-                <CodeBlock />
+              {/* Tab bar */}
+              <div style={{ display: "flex", borderBottom: "1px solid #E8E8E4", background: "#EDECEA" }}>
+                {CODE_TABS.map((tab, i) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => { setCodeTab(i); setCopied(false); }}
+                    style={{
+                      fontFamily: MONO, fontSize: 11, padding: "9px 16px", cursor: "pointer", border: "none",
+                      borderRight: "1px solid #E8E8E4", background: codeTab === i ? "#F4F3F0" : "transparent",
+                      color: codeTab === i ? "#0D0D0B" : "#71716B",
+                      borderBottom: codeTab === i ? "1px solid #F4F3F0" : "none",
+                      marginBottom: codeTab === i ? -1 : 0,
+                    }}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+                <div style={{ flex: 1 }} />
+                <button onClick={copyCode} style={{ fontFamily: MONO, fontSize: 11, color: "#71716B", background: "transparent", border: "none", borderLeft: "1px solid #E8E8E4", padding: "9px 14px", cursor: "pointer" }}>
+                  {copied ? "copied ✓" : "copy"}
+                </button>
+              </div>
+              <pre style={{ margin: 0, padding: "22px 22px", overflowX: "auto", WebkitOverflowScrolling: "touch" as const, fontFamily: CODE_FONT, fontSize: 13, lineHeight: 1.7, color: "#0D0D0B", minHeight: 200 }}>
+                <CodeBlock tabIdx={codeTab} />
               </pre>
             </div>
           </div>
