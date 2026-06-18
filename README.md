@@ -295,7 +295,9 @@ export SVITCH_TRACER_URL=http://localhost:8002
 
 **→ [DPDP for AI Developers](https://svitch.ai/dpdp)** — India's Digital Personal Data Protection Act mapped to code. Every section, penalties, timeline, and a compliance checklist.
 
-GDPR and HIPAA guides coming soon.
+**→ [GDPR for AI Developers](https://svitch.ai/gdpr)** — Articles 6–49 mapped to LLM pipeline obligations. Lawful basis, Art. 22 automated decisions, cross-border transfers, 72-hour breach notification.
+
+**→ [HIPAA for AI Developers](https://svitch.ai/hipaa)** — All 18 Safe Harbor identifiers, BAA requirements, §164.312(b) audit controls, 60-day breach notification.
 
 ---
 

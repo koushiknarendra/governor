@@ -687,6 +687,113 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ── COMPLIANCE FRAMEWORKS ── */}
+      <section style={{ background: "#FAFAF8", borderTop: "1px solid #E8E8E4", borderBottom: "1px solid #E8E8E4" }}>
+        <div className="r-section">
+          <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.12em", color: "#71716B", marginBottom: 18 }}>COMPLIANCE COVERAGE</div>
+          <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: 20, marginBottom: 40 }}>
+            <h2 className="r-h2-lg" style={{ margin: 0 }}>
+              Every regime.<br /><span style={{ color: ACCENT }}>One SDK.</span>
+            </h2>
+            <p style={{ fontSize: 14, lineHeight: 1.65, color: "#71716B", margin: 0, maxWidth: 380 }}>
+              Machine-readable compliance specs — open-sourced and submitted to IndiaAI Mission, EDPB, and HHS OCR.
+            </p>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
+            {/* ── DPDP ── */}
+            <div style={{ background: "#FFFFFF", border: "1px solid #E8E8E4", borderRadius: 10, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+              <div style={{ padding: "20px 20px 0" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+                  <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.08em", color: "#0D0D0B", fontWeight: 600 }}>DPDP</span>
+                  <span style={{ fontSize: 11, fontFamily: MONO, background: "#EEF4FF", color: ACCENT, borderRadius: 4, padding: "2px 8px" }}>India</span>
+                </div>
+                <div style={{ fontSize: 13, color: "#71716B", marginBottom: 16, lineHeight: 1.5 }}>Digital Personal Data Protection Act 2023. Full enforcement May 2027.</div>
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ fontSize: 11, fontFamily: MONO, color: "#A8A8A2", marginBottom: 6 }}>MAX PENALTY</div>
+                  <div style={{ fontSize: 22, fontWeight: 700, fontFamily: DISPLAY, color: "#dc2626", letterSpacing: "-0.02em" }}>₹250 Cr</div>
+                </div>
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ fontSize: 11, fontFamily: MONO, color: "#A8A8A2", marginBottom: 8 }}>ENTITIES DETECTED</div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+                    {["AADHAAR","PAN","UPI","IFSC","MOBILE","GST","BANK_ACCT"].map(e => (
+                      <span key={e} style={{ fontSize: 10, fontFamily: MONO, background: "#F5F5F3", border: "1px solid #E8E8E4", borderRadius: 4, padding: "2px 7px", color: "#0D0D0B" }}>{e}</span>
+                    ))}
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4 }}>
+                  <span style={{ fontSize: 11, fontFamily: MONO, color: "#A8A8A2" }}>19 controls ·</span>
+                  <a href="https://github.com/koushiknarendra/svitch/blob/main/spec/dpdp-ai-v1.json" target="_blank" rel="noreferrer" style={{ fontSize: 11, fontFamily: MONO, color: "#71716B", textDecoration: "none" }}>dpdp-ai-v1.json ↗</a>
+                </div>
+              </div>
+              <div style={{ marginTop: "auto", borderTop: "1px solid #E8E8E4", padding: "14px 20px" }}>
+                <a href="/dpdp" style={{ fontSize: 13, fontFamily: MONO, color: ACCENT, textDecoration: "none", fontWeight: 600 }}>Read DPDP guide →</a>
+              </div>
+            </div>
+
+            {/* ── GDPR ── */}
+            <div style={{ background: "#FFFFFF", border: "1px solid #E8E8E4", borderRadius: 10, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+              <div style={{ padding: "20px 20px 0" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+                  <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.08em", color: "#0D0D0B", fontWeight: 600 }}>GDPR</span>
+                  <span style={{ fontSize: 11, fontFamily: MONO, background: "#DBEAFE", color: "#1d4ed8", borderRadius: 4, padding: "2px 8px" }}>EU / EEA</span>
+                </div>
+                <div style={{ fontSize: 13, color: "#71716B", marginBottom: 16, lineHeight: 1.5 }}>General Data Protection Regulation. In force May 2018. EU AI Act adds obligations Aug 2026.</div>
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ fontSize: 11, fontFamily: MONO, color: "#A8A8A2", marginBottom: 6 }}>MAX PENALTY</div>
+                  <div style={{ fontSize: 22, fontWeight: 700, fontFamily: DISPLAY, color: "#dc2626", letterSpacing: "-0.02em" }}>€20M · 4%</div>
+                </div>
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ fontSize: 11, fontFamily: MONO, color: "#A8A8A2", marginBottom: 8 }}>ENTITIES DETECTED</div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+                    {["IBAN","UK_NIN","EU_PASSPORT","CREDIT_CARD","EMAIL","IPV4"].map(e => (
+                      <span key={e} style={{ fontSize: 10, fontFamily: MONO, background: "#F5F5F3", border: "1px solid #E8E8E4", borderRadius: 4, padding: "2px 7px", color: "#0D0D0B" }}>{e}</span>
+                    ))}
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4 }}>
+                  <span style={{ fontSize: 11, fontFamily: MONO, color: "#A8A8A2" }}>15 controls ·</span>
+                  <a href="https://github.com/koushiknarendra/svitch/blob/main/spec/gdpr-ai-v1.json" target="_blank" rel="noreferrer" style={{ fontSize: 11, fontFamily: MONO, color: "#71716B", textDecoration: "none" }}>gdpr-ai-v1.json ↗</a>
+                </div>
+              </div>
+              <div style={{ marginTop: "auto", borderTop: "1px solid #E8E8E4", padding: "14px 20px" }}>
+                <a href="/gdpr" style={{ fontSize: 13, fontFamily: MONO, color: "#1d4ed8", textDecoration: "none", fontWeight: 600 }}>Read GDPR guide →</a>
+              </div>
+            </div>
+
+            {/* ── HIPAA ── */}
+            <div style={{ background: "#FFFFFF", border: "1px solid #E8E8E4", borderRadius: 10, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+              <div style={{ padding: "20px 20px 0" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+                  <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.08em", color: "#0D0D0B", fontWeight: 600 }}>HIPAA</span>
+                  <span style={{ fontSize: 11, fontFamily: MONO, background: "#D1FAE5", color: "#065f46", borderRadius: 4, padding: "2px 8px" }}>United States</span>
+                </div>
+                <div style={{ fontSize: 13, color: "#71716B", marginBottom: 16, lineHeight: 1.5 }}>Health Insurance Portability and Accountability Act. 2024 HHS OCR guidance covers LLM pipelines.</div>
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ fontSize: 11, fontFamily: MONO, color: "#A8A8A2", marginBottom: 6 }}>MAX PENALTY / YEAR</div>
+                  <div style={{ fontSize: 22, fontWeight: 700, fontFamily: DISPLAY, color: "#dc2626", letterSpacing: "-0.02em" }}>$1.5M</div>
+                </div>
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ fontSize: 11, fontFamily: MONO, color: "#A8A8A2", marginBottom: 8 }}>ENTITIES DETECTED</div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+                    {["SSN_US","MRN","NPI","US_PHONE","EMAIL","IPV4"].map(e => (
+                      <span key={e} style={{ fontSize: 10, fontFamily: MONO, background: "#F5F5F3", border: "1px solid #E8E8E4", borderRadius: 4, padding: "2px 7px", color: "#0D0D0B" }}>{e}</span>
+                    ))}
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4 }}>
+                  <span style={{ fontSize: 11, fontFamily: MONO, color: "#A8A8A2" }}>12 controls ·</span>
+                  <a href="https://github.com/koushiknarendra/svitch/blob/main/spec/hipaa-ai-v1.json" target="_blank" rel="noreferrer" style={{ fontSize: 11, fontFamily: MONO, color: "#71716B", textDecoration: "none" }}>hipaa-ai-v1.json ↗</a>
+                </div>
+              </div>
+              <div style={{ marginTop: "auto", borderTop: "1px solid #E8E8E4", padding: "14px 20px" }}>
+                <a href="/hipaa" style={{ fontSize: 13, fontFamily: MONO, color: "#059669", textDecoration: "none", fontWeight: 600 }}>Read HIPAA guide →</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── COMPLIANCE STATS ── */}
       <section style={{ background: "#0D0D0B", color: "#FFFFFF" }}>
         <div className="r-section-sm">
@@ -719,9 +826,10 @@ export default function Home() {
             </div>
             <div style={{ display: "flex", gap: 28, fontFamily: MONO, fontSize: 13, color: "#71716B", justifyContent: "center", flexWrap: "wrap" }}>
               <a href="#process" style={{ color: "#71716B" }}>Products</a>
-              <a href="#demo"    style={{ color: "#71716B" }}>Docs</a>
+              <a href="/dpdp"    style={{ color: "#71716B" }}>DPDP</a>
+              <a href="/gdpr"    style={{ color: "#71716B" }}>GDPR</a>
+              <a href="/hipaa"   style={{ color: "#71716B" }}>HIPAA</a>
               <a href="https://github.com/koushiknarendra/svitch" target="_blank" style={{ color: "#71716B" }}>GitHub</a>
-              <a href="#"        style={{ color: "#71716B" }}>Changelog</a>
             </div>
             <div className="r-text-right">
               <a href="#demo" style={{ fontFamily: MONO, fontSize: 13, color: ACCENT }}>Request early access&nbsp;→</a>
