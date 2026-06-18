@@ -133,8 +133,9 @@ export default function DPDPGuidePage() {
           </Link>
           <div style={{ display: "flex", gap: 28, fontSize: 13, color: "#71716B", fontFamily: "'DM Mono', monospace" }}>
             <Link href="/#process" style={{ color: "#71716B", textDecoration: "none" }}>Products</Link>
-            <Link href="/dpdp" style={{ color: "#0D0D0B", textDecoration: "none", fontWeight: 600 }}>DPDP Guide</Link>
-            <a href="https://github.com/koushiknarendra/svitch" target="_blank" rel="noreferrer" style={{ color: "#71716B", textDecoration: "none" }}>GitHub</a>
+            <Link href="/dpdp"  style={{ color: "#0D0D0B", textDecoration: "none", fontWeight: 600 }}>DPDP Guide</Link>
+            <Link href="/gdpr"  style={{ color: "#71716B", textDecoration: "none" }}>GDPR Guide</Link>
+            <Link href="/hipaa" style={{ color: "#71716B", textDecoration: "none" }}>HIPAA Guide</Link>
           </div>
           <Link href="/dashboard" style={{
             fontFamily: "'DM Mono', monospace", fontSize: 13, color: "#2A6FDB", textDecoration: "none",

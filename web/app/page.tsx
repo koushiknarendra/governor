@@ -336,8 +336,9 @@ export default function Home() {
 
           <div className="r-nav-links" style={{ fontFamily: MONO, fontSize: 13, color: "#71716B" }}>
             <a href="#process" style={{ color: "#71716B" }}>Products</a>
-            <a href="/dpdp"    style={{ color: "#71716B" }}>DPDP Guide</a>
-            <a href="#code"    style={{ color: "#71716B" }}>Pricing</a>
+            <a href="/dpdp"   style={{ color: "#71716B" }}>DPDP</a>
+            <a href="/gdpr"   style={{ color: "#71716B" }}>GDPR</a>
+            <a href="/hipaa"  style={{ color: "#71716B" }}>HIPAA</a>
             <a href="https://github.com/koushiknarendra/svitch" target="_blank" style={{ color: "#71716B" }}>GitHub</a>
           </div>
 
