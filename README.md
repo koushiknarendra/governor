@@ -112,6 +112,34 @@ with tracer.run() as run:
 valid, err = run.verify()   # cryptographic proof the chain is intact
 ```
 
+### PII redaction + audit trail in one call
+
+```python
+import svitch, openai
+from svitch_tracer import SvitchTracer
+
+tracer = SvitchTracer(agent_id="loan-processor-v2")
+client = svitch.wrap(openai.OpenAI(), tracer=tracer)
+
+# PII is redacted before the prompt reaches OpenAI.
+# The call is logged as a hash-chained audit event automatically.
+response = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[{"role": "user", "content": "Loan for Aadhaar 9876 5432 1098, PAN ABCDE1234F"}]
+)
+```
+
+```typescript
+import OpenAI from 'openai';
+import { wrap, SvitchTracer } from 'svitch';
+
+const tracer = new SvitchTracer('loan-processor-v2');
+const client = wrap(new OpenAI(), { locale: 'in', tracer });
+
+// Same interface as the original client — PII redacted, call logged.
+const response = await client.chat.completions.create({ model: 'gpt-4o', messages: [...] });
+```
+
 ### LangChain / LangGraph integration
 
 ```python
@@ -286,8 +314,11 @@ GDPR and HIPAA guides coming soon.
 - [x] HIPAA mode — SSN, US phone, MRN, NPI
 - [x] LangChain / LangGraph native integration — `SvitchCallbackHandler`
 - [x] DPDP-AI Compliance Spec v1.0 — machine-readable open standard ([spec/dpdp-ai-v1.json](spec/dpdp-ai-v1.json))
+- [x] GDPR-AI Compliance Spec v1.0 — 15 controls, Art. 5–49 ([spec/gdpr-ai-v1.json](spec/gdpr-ai-v1.json))
+- [x] HIPAA-AI Compliance Spec v1.0 — 12 controls, all 18 Safe Harbor identifiers ([spec/hipaa-ai-v1.json](spec/hipaa-ai-v1.json))
+- [x] OpenTelemetry integration — `SvitchOtelTracer` bridges audit trail to Datadog, Jaeger, Honeycomb
+- [x] `svitch.wrap(client, tracer=tracer)` — PII redaction + audit trail in one call
 - [ ] Private inference enclave — air-gapped Llama/Mistral
-- [ ] OpenTelemetry-compatible agent spans
 
 ---
 
@@ -297,8 +328,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Good first issues are tagged [`good firs
 
 High-value contributions right now:
 - Additional Indian PII patterns (Voter ID / EPIC, Passport, Driving Licence)
-- LangChain / LangGraph tracer integration
-- GDPR entity patterns (IBAN, NHS number, BSN, NIF)
+- Async-native tracer (`async with tracer.run()`) for asyncio agents
+- Additional GDPR entity patterns (NHS number, BSN, NIF, PESEL)
 
 ---
 

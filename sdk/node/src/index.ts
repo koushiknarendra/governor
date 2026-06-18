@@ -1,6 +1,7 @@
 import * as P from './patterns.js';
+import { SvitchTracer, RunContext } from './tracer.js';
 
-export { SvitchTracer, RunContext } from './tracer.js';
+export { SvitchTracer, RunContext };
 
 // ── Public types ──────────────────────────────────────────────────────────────
 
@@ -189,30 +190,75 @@ export function redact(
 
 type AnyClient = Record<string | symbol, any>;
 
-export function wrap(client: AnyClient, locale: Locale = 'all'): AnyClient {
+export interface WrapOptions {
+  locale?: Locale;
+  /** Optional SvitchTracer. When provided, every LLM call is logged as a
+   *  hash-chained audit event with PII-redacted prompt and response. */
+  tracer?: SvitchTracer;
+}
+
+/**
+ * Wrap an OpenAI or Anthropic client to automatically redact PII.
+ *
+ * @param client  openai.OpenAI or anthropic.Anthropic instance.
+ * @param opts    Locale string (backwards-compatible) or WrapOptions object.
+ *
+ * @example
+ * // PII redaction only
+ * const client = wrap(new OpenAI());
+ *
+ * @example
+ * // PII redaction + audit trail
+ * const tracer = new SvitchTracer('loan-agent-v2');
+ * const client = wrap(new OpenAI(), { locale: 'us', tracer });
+ */
+export function wrap(client: AnyClient, opts?: Locale | WrapOptions): AnyClient {
+  const locale: Locale = typeof opts === 'string' ? opts : (opts?.locale ?? 'all');
+  const tracer: SvitchTracer | undefined = typeof opts === 'object' ? opts?.tracer : undefined;
+
   const name = client?.constructor?.name ?? '';
-  if (name.includes('OpenAI'))    return wrapOpenAI(client, locale);
-  if (name.includes('Anthropic')) return wrapAnthropic(client, locale);
+  if (name.includes('OpenAI'))    return wrapOpenAI(client, locale, tracer);
+  if (name.includes('Anthropic')) return wrapAnthropic(client, locale, tracer);
   throw new Error(
     `svitch.wrap() does not recognise client type "${name}". ` +
     'Supported: OpenAI, Anthropic.',
   );
 }
 
-function redactMessages(messages: any[], locale: Locale): { messages: any[]; count: number } {
-  let count = 0;
+function redactMessages(messages: any[], locale: Locale): { messages: any[]; piiTypes: string[] } {
+  const piiSet = new Set<string>();
   const cleaned = messages.map((msg) => {
     if (typeof msg?.content === 'string' && msg.content) {
       const r = redact(msg.content, locale);
-      count += r.count;
+      r.entities.forEach((e) => piiSet.add(e.type));
       return { ...msg, content: r.text };
     }
     return msg;
   });
-  return { messages: cleaned, count };
+  return { messages: cleaned, piiTypes: [...piiSet] };
 }
 
-function wrapOpenAI(client: AnyClient, locale: Locale): AnyClient {
+function joinPrompt(messages: any[]): string {
+  return messages
+    .map((m) => (typeof m?.content === 'string' ? m.content : ''))
+    .join(' ');
+}
+
+function logLlm(
+  tracer: SvitchTracer,
+  provider: string,
+  model: string,
+  prompt: string,
+  response: string,
+  piiTypes: string[],
+): void {
+  try {
+    const run = tracer.run();
+    run.llmCall(provider, model, prompt, response, { redactPii: true, piiTypes });
+  } catch (_) { /* fire-and-forget — never throw inside a client call */ }
+}
+
+function wrapOpenAI(client: AnyClient, locale: Locale, tracer: SvitchTracer | undefined): AnyClient {
   return new Proxy(client, {
     get(target, prop) {
       if (prop !== 'chat') return target[prop];
@@ -223,8 +269,13 @@ function wrapOpenAI(client: AnyClient, locale: Locale): AnyClient {
             get(compTarget, compProp) {
               if (compProp !== 'create') return compTarget[compProp];
               return async (params: any) => {
-                const { messages } = redactMessages(params.messages ?? [], locale);
-                return compTarget.create({ ...params, messages });
+                const { messages, piiTypes } = redactMessages(params.messages ?? [], locale);
+                const result = await compTarget.create({ ...params, messages });
+                if (tracer) {
+                  const respText: string = result?.choices?.[0]?.message?.content ?? '';
+                  logLlm(tracer, 'openai', params.model ?? 'unknown', joinPrompt(messages), respText, piiTypes);
+                }
+                return result;
               };
             },
           });
@@ -234,7 +285,7 @@ function wrapOpenAI(client: AnyClient, locale: Locale): AnyClient {
   });
 }
 
-function wrapAnthropic(client: AnyClient, locale: Locale): AnyClient {
+function wrapAnthropic(client: AnyClient, locale: Locale, tracer: SvitchTracer | undefined): AnyClient {
   return new Proxy(client, {
     get(target, prop) {
       if (prop !== 'messages') return target[prop];
@@ -242,10 +293,15 @@ function wrapAnthropic(client: AnyClient, locale: Locale): AnyClient {
         get(msgTarget, msgProp) {
           if (msgProp !== 'create') return msgTarget[msgProp];
           return async (params: any) => {
-            const { messages } = redactMessages(params.messages ?? [], locale);
+            const { messages, piiTypes } = redactMessages(params.messages ?? [], locale);
             let system = params.system;
             if (typeof system === 'string') system = redact(system, locale).text;
-            return msgTarget.create({ ...params, messages, ...(system !== undefined && { system }) });
+            const result = await msgTarget.create({ ...params, messages, ...(system !== undefined && { system }) });
+            if (tracer) {
+              const respText: string = result?.content?.[0]?.text ?? '';
+              logLlm(tracer, 'anthropic', params.model ?? 'unknown', joinPrompt(messages), respText, piiTypes);
+            }
+            return result;
           };
         },
       });
