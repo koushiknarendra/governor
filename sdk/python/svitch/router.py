@@ -33,6 +33,7 @@ from dataclasses import dataclass, field
 from typing import Any, Optional
 
 from .classify import classify as _classify
+from .cache import stabilize as _stabilize, anthropic_cache_block as _cache_block
 
 # ── Default model tiers per provider type ─────────────────────────────────
 
@@ -334,13 +335,15 @@ class Router:
                 "max_tokens": max_tokens,
             }
             if sys_prompt:
-                kwargs["system"] = sys_prompt
+                stable = _stabilize(sys_prompt)
+                kwargs["system"] = _cache_block(stable.text)
             resp = provider.client.messages.create(**kwargs)
             return _normalise_anthropic(resp, provider.name)
         else:
             oai_messages = list(messages)
             if system:
-                oai_messages = [{"role": "system", "content": system}] + oai_messages
+                stable = _stabilize(system)
+                oai_messages = [{"role": "system", "content": stable.text}] + oai_messages
             resp = provider.client.chat.completions.create(
                 model=model_id,
                 messages=oai_messages,

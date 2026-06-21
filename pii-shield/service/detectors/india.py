@@ -112,11 +112,12 @@ _BANK_ACCOUNT_CONTEXT = re.compile(
 
 # ---------------------------------------------------------------------------
 # Driving Licence (India)
-# Format varies by state: MH01 20110012345 or MH-01-2011-0012345
-# General pattern: 2-letter state code + 2-digit RTO + year + serial
+# Format: MH 01 2011 0012345 or MH-01-2011-0012345
+# Keyword-anchored to avoid false positives with other numeric strings.
 # ---------------------------------------------------------------------------
 _DL_IN = re.compile(
-    r'\b([A-Z]{2}[\s\-]?[0-9]{2}[\s\-]?[0-9]{4}[\s\-]?[0-9]{7})\b',
+    r'(?:d\.?l\.?|driving\s*licen[cs]e|licence\s*(?:no\.?|number|#)|dl\s*no\.?)'
+    r'[\s:]*([A-Z]{2}[\s\-]?[0-9]{2}[\s\-]?[0-9]{4}[\s\-]?[0-9]{7})',
     re.IGNORECASE
 )
 
@@ -142,6 +143,7 @@ def detect(text: str) -> list[Entity]:
     _add(_MOBILE_IN, "MOBILE_IN", text, group=1)
     _add(_GST, "GST", text, group=1)
     _add(_BANK_ACCOUNT_CONTEXT, "BANK_ACCOUNT", text, group=1)
+    _add(_DL_IN, "DL_IN", text, group=1)
 
     # Higher false-positive risk — only add when not already matched a longer entity
     matched_spans = {(e.start, e.end) for e in entities}
@@ -203,4 +205,11 @@ def _mask(entity: Entity) -> str:
     if entity.type == "UPI_ID":
         parts = entity.value.split("@")
         return "XXXX@" + parts[1] if len(parts) == 2 else "[UPI_ID]"
+    if entity.type == "PASSPORT_IN":
+        return entity.value[0] + "XXXXXXX"
+    if entity.type == "VOTER_ID":
+        return entity.value[:3] + "XXXXXXX"
+    if entity.type == "DL_IN":
+        digits = re.sub(r'[^0-9]', '', entity.value)
+        return entity.value[:2] + "XX-XXXX-" + digits[-4:]
     return f"[{entity.type}]"

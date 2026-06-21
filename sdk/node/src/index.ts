@@ -61,6 +61,9 @@ const INDIA_PATTERNS: PatternDef[] = [
   { pattern: P.MOBILE_IN,    type: 'MOBILE_IN',     group: 1 },
   { pattern: P.GST,          type: 'GST',           group: 1 },
   { pattern: P.BANK_ACCOUNT, type: 'BANK_ACCOUNT',  group: 1 },
+  { pattern: P.VOTER_ID,     type: 'VOTER_ID',      group: 1 },
+  { pattern: P.PASSPORT_IN,  type: 'PASSPORT_IN',   group: 1 },
+  { pattern: P.DL_IN,        type: 'DL_IN',         group: 1 },
 ];
 
 const GLOBAL_PATTERNS: PatternDef[] = [

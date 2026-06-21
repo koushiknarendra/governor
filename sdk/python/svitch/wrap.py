@@ -21,6 +21,7 @@ Usage — PII redaction + audit trail:
 from __future__ import annotations
 from typing import Any, Literal, Optional
 from .shield import redact as _redact
+from .cache import stabilize as _stabilize, anthropic_cache_block as _cache_block
 
 _Locale = Literal["in", "eu", "us", "global", "all"]
 
@@ -173,9 +174,13 @@ class _AnthropicMessages:
         cleaned, pii_types = _redact_messages(messages, self._locale)
         system = kwargs.get("system", "")
         if system:
-            sys_result = _redact(system, self._locale)
-            pii_types = list(dict.fromkeys(pii_types + [e.type for e in sys_result.entities]))
-            kwargs = {**kwargs, "system": sys_result.text}
+            # Accept both plain string and already-structured cache blocks
+            if isinstance(system, str):
+                sys_result = _redact(system, self._locale)
+                pii_types = list(dict.fromkeys(pii_types + [e.type for e in sys_result.entities]))
+                stable = _stabilize(sys_result.text)
+                kwargs = {**kwargs, "system": _cache_block(stable.text)}
+            # else: caller already passed structured blocks — leave them alone
         response = self._messages.create(**{**kwargs, "messages": cleaned})
         if self._tracer:
             try:
@@ -191,6 +196,12 @@ class _AnthropicMessages:
     async def acreate(self, **kwargs: Any) -> Any:
         messages = kwargs.get("messages", [])
         cleaned, pii_types = _redact_messages(messages, self._locale)
+        system = kwargs.get("system", "")
+        if system and isinstance(system, str):
+            sys_result = _redact(system, self._locale)
+            pii_types = list(dict.fromkeys(pii_types + [e.type for e in sys_result.entities]))
+            stable = _stabilize(sys_result.text)
+            kwargs = {**kwargs, "system": _cache_block(stable.text)}
         response = await self._messages.acreate(**{**kwargs, "messages": cleaned})
         if self._tracer:
             try:

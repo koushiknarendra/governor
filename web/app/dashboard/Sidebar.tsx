@@ -4,11 +4,12 @@ import { usePathname } from "next/navigation";
 import Logo from "../components/Logo";
 
 const nav = [
-  { href: "/dashboard",         label: "Overview",        icon: IconOverview },
-  { href: "/dashboard/pii",     label: "PII Shield",      icon: IconShield },
-  { href: "/dashboard/agents",  label: "Agent Tracer",    icon: IconTrace },
-  { href: "/dashboard/reports", label: "Reports",         icon: IconReport },
-  { href: "/dashboard/consent", label: "Consent Ledger",  icon: IconConsent },
+  { href: "/dashboard",           label: "Overview",        icon: IconOverview },
+  { href: "/dashboard/pii",       label: "PII Shield",      icon: IconShield },
+  { href: "/dashboard/agents",    label: "Agent Tracer",    icon: IconTrace },
+  { href: "/dashboard/consent",   label: "Consent Ledger",  icon: IconConsent },
+  { href: "/dashboard/reports",   label: "Reports",         icon: IconReport },
+  { href: "/dashboard/integrate", label: "Integrate",       icon: IconIntegrate },
 ];
 
 export default function Sidebar() {
@@ -62,13 +63,13 @@ export default function Sidebar() {
           <IconGithub size={16} color="#4A4A44" />
           GitHub
         </a>
-        <Link href="/dashboard" style={{
+        <a href="https://github.com/koushiknarendra/svitch#quickstart" target="_blank" rel="noreferrer" style={{
           display: "flex", alignItems: "center", gap: 10, padding: "9px 10px", borderRadius: 8,
           color: "#7A7A74", textDecoration: "none", fontSize: 14,
         }}>
           <IconDocs size={16} color="#4A4A44" />
           Docs
-        </Link>
+        </a>
       </div>
     </aside>
   );
@@ -94,4 +95,7 @@ function IconGithub({ size, color }: { size: number; color: string }) {
 }
 function IconDocs({ size, color }: { size: number; color: string }) {
   return <svg width={size} height={size} viewBox="0 0 16 16" fill="none"><path d="M2 13V3a1 1 0 011-1h6.586a1 1 0 01.707.293l2.414 2.414A1 1 0 0113 5.414V13a1 1 0 01-1 1H3a1 1 0 01-1-1z" stroke={color} strokeWidth="1.4"/><path d="M9 2v4h4" stroke={color} strokeWidth="1.4" strokeLinejoin="round"/></svg>;
+}
+function IconIntegrate({ size, color }: { size: number; color: string }) {
+  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none"><path d="M2 8h3M11 8h3M5 5l-2 3 2 3M11 5l2 3-2 3" stroke={color} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/><rect x="6" y="6" width="4" height="4" rx="1" fill={color} opacity="0.6"/></svg>;
 }

@@ -246,3 +246,31 @@ for val, etype in us_cases:
     found = [e.type for e in entities]
     ok = etype in found
     print(f"  {'PASS' if ok else 'FAIL'}  {val!r} → {found}")
+
+# New India entity tests
+print("\nNew India entity tests (Voter ID, Passport, Driving Licence):")
+new_india_cases = [
+    # (description, input, expected_type)
+    ("Voter ID plain",         "Voter ID: ABC1234567",                   "VOTER_ID"),
+    ("Voter ID in sentence",   "EPIC number XYZ9876543 for voter roll",  "VOTER_ID"),
+    ("Passport keyword",       "Passport No. A1234567",                  "PASSPORT_IN"),
+    ("Passport (travel doc)",  "travel doc P9876543 required",           "PASSPORT_IN"),
+    ("DL keyword",             "DL No. MH01 2011 0012345",               "DL_IN"),
+    ("Driving licence long",   "Driving Licence: KA-05-2019-1234567",    "DL_IN"),
+    ("DL abbreviated",         "dl: DL0120181234567",                    "DL_IN"),
+]
+for desc, text, expected in new_india_cases:
+    entities = detect(text)
+    found_types = [e.type for e in entities]
+    ok = expected in found_types
+    print(f"  {'PASS' if ok else 'FAIL'}  {desc!r} → {found_types}")
+
+print("\nNew entity mask mode:")
+mask_cases = [
+    "Voter ID: ABC1234567",
+    "Passport No. A1234567",
+    "DL No. MH01 2011 0012345",
+]
+for s in mask_cases:
+    masked, _ = redact_all(s, "mask")
+    print(f"  {s!r:40} → {masked!r}")

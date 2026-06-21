@@ -6,6 +6,12 @@ export const IFSC           = /\b([A-Z]{4}0[A-Z0-9]{6})\b/g;
 export const MOBILE_IN      = /(?<!\d)(?:\+91[\s\-]?|91[\s\-]?|0)?([6-9][0-9]{9})(?!\d)/g;
 export const GST            = /\b([0-3][0-9][A-Z]{5}[0-9]{4}[A-Z][0-9A-Z]Z[0-9A-Z])\b/g;
 export const BANK_ACCOUNT   = /(?:account\s*(?:number|no\.?|#)|a\/?c\s*(?:no\.?|#)|bank\s*a\/?c)[\s:]*([0-9]{9,18})/gi;
+// Voter ID (EPIC) — 3 uppercase letters + 7 digits
+export const VOTER_ID       = /\b([A-Z]{3}[0-9]{7})\b/g;
+// Indian Passport — keyword-anchored; valid series prefix letters
+export const PASSPORT_IN    = /(?:passport|pass\s*(?:no\.?|number|#)|travel\s*doc)\s*:?\s*([A-PR-WY][0-9]{7})\b/gi;
+// Driving Licence — keyword-anchored; state(2) + RTO(2) + year(4) + serial(7)
+export const DL_IN          = /(?:d\.?l\.?|driving\s*licen[cs]e|licence\s*(?:no\.?|number|#)|dl\s*no\.?)\s*:?\s*([A-Z]{2}[\s\-]?[0-9]{2}[\s\-]?[0-9]{4}[\s\-]?[0-9]{7})/gi;
 
 const UPI_PROVIDERS = [
   'paytm','gpay','phonepe','okicici','okhdfcbank','oksbi','okaxis','ybl',

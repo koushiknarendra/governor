@@ -6,8 +6,15 @@ on:
       - "v*"
 
 jobs:
+  # ── Gate: all CI must pass before publishing ───────────────────────────────
+  ci:
+    name: Run CI checks
+    uses: ./.github/workflows/ci.yml
+
+  # ── PyPI (OIDC trusted publishing — no PYPI_TOKEN needed) ─────────────────
   publish-python:
     name: Publish to PyPI
+    needs: ci
     runs-on: ubuntu-latest
     environment: release
     permissions:
@@ -17,16 +24,20 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install build
-      - run: python -m build
+      - name: Build sdist + wheel
+        run: |
+          pip install build
+          python -m build
         working-directory: sdk/python
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: sdk/python/dist/
 
+  # ── npm ────────────────────────────────────────────────────────────────────
   publish-npm:
     name: Publish to npm
+    needs: ci
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -42,3 +53,33 @@ jobs:
         working-directory: sdk/node
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  # ── GitHub Release (auto-generated from commits since last tag) ────────────
+  github-release:
+    name: Create GitHub Release
+    needs: [publish-python, publish-npm]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract version
+        id: ver
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "v${{ steps.ver.outputs.VERSION }}"
+          generate_release_notes: true
+          body: |
+            ## Install
+
+            ```bash
+            pip install svitch==${{ steps.ver.outputs.VERSION }}
+            ```
+
+            ```bash
+            npm install svitch@${{ steps.ver.outputs.VERSION }}
+            ```
+
+            See the [README](https://github.com/koushiknarendra/svitch#quickstart) for full usage.

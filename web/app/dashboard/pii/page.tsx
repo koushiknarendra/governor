@@ -4,9 +4,10 @@ import { useState } from "react";
 const PII_SHIELD_URL = process.env.NEXT_PUBLIC_PII_SHIELD_URL ?? "https://service-sage-mu.vercel.app";
 
 const ENTITY_COLORS: Record<string, string> = {
-  AADHAAR_IN: "#1C6EF2", PAN_IN: "#9333ea", UPI_IN: "#d97706",
-  MOBILE_IN: "#16a34a",  IFSC_IN: "#0891b2", BANK_ACCOUNT_IN: "#dc2626",
-  GST_IN: "#7c3aed",     EMAIL: "#ea580c",    IPV4: "#71716B",
+  AADHAAR_IN: "#1C6EF2", PAN_IN: "#9333ea",    UPI_IN: "#d97706",
+  MOBILE_IN: "#16a34a",  IFSC_IN: "#0891b2",   BANK_ACCOUNT_IN: "#dc2626",
+  GST_IN: "#7c3aed",     EMAIL: "#ea580c",     IPV4: "#71716B",
+  VOTER_ID: "#0369a1",   PASSPORT_IN: "#b45309", DL_IN: "#0f766e",
 };
 
 interface DetectResult {

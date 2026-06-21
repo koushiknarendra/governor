@@ -74,6 +74,23 @@ _BANK_ACCOUNT = re.compile(
     r'(?:account\s*(?:number|no\.?|#)|a/?c\s*(?:no\.?|#)|bank\s*a/?c)[\s:]*([0-9]{9,18})',
     re.IGNORECASE
 )
+
+# Indian Passport — keyword-anchored; starts with one of the valid series letters
+_PASSPORT_IN = re.compile(
+    r'(?i)(?:passport|pass\s*(?:no\.?|number|#)|travel\s*doc)'
+    r'[\s:]*([A-PR-WYa-pr-wy][0-9]{7})\b'
+)
+
+# Voter ID (EPIC) — 3 uppercase letters + 7 digits (e.g. ABC1234567)
+_VOTER_ID = re.compile(r'\b([A-Z]{3}[0-9]{7})\b')
+
+# Driving Licence — keyword-anchored; state + RTO + year + serial
+_DL_IN = re.compile(
+    r'(?:d\.?l\.?|driving\s*licen[cs]e|licence\s*(?:no\.?|number|#)|dl\s*no\.?)'
+    r'[\s:]*([A-Z]{2}[\s\-]?[0-9]{2}[\s\-]?[0-9]{4}[\s\-]?[0-9]{7})',
+    re.IGNORECASE
+)
+
 _EMAIL = re.compile(r'\b[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}\b')
 _IPV4 = re.compile(r'\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b')
 
@@ -156,7 +173,17 @@ def _inline_detect(text: str) -> list[Entity]:
     _add(_MOBILE_IN, "MOBILE_IN", 1)
     _add(_GST, "GST", 1)
     _add(_BANK_ACCOUNT, "BANK_ACCOUNT", 1)
+    _add(_DL_IN, "DL_IN", 1)
     _add(_EMAIL, "EMAIL")
+
+    # Lower-specificity patterns — add only when span not already claimed
+    matched_spans = {(e.start, e.end) for e in entities}
+    for m in _PASSPORT_IN.finditer(text):
+        if (m.start(1), m.end(1)) not in matched_spans:
+            entities.append(Entity(type="PASSPORT_IN", value=m.group(1), start=m.start(1), end=m.end(1)))
+    for m in _VOTER_ID.finditer(text):
+        if (m.start(1), m.end(1)) not in matched_spans:
+            entities.append(Entity(type="VOTER_ID", value=m.group(1), start=m.start(1), end=m.end(1)))
     _add(_IPV4, "IPV4")
 
     # EU
@@ -225,6 +252,13 @@ def _mask_entity(e: Entity) -> str:
         return f"XXX-XX-{parts[-1]}" if len(parts) == 3 else "[SSN_US]"
     if e.type == "IBAN":
         return e.value[:4] + "XXXX" + e.value[-4:]
+    if e.type == "PASSPORT_IN":
+        return e.value[0] + "XXXXXXX"
+    if e.type == "VOTER_ID":
+        return e.value[:3] + "XXXXXXX"
+    if e.type == "DL_IN":
+        digits = re.sub(r'[^0-9]', '', e.value)
+        return e.value[:2] + "XX-XXXX-" + digits[-4:]
     return f"[{e.type}]"
 
 

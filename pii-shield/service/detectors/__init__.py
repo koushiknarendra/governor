@@ -43,7 +43,8 @@ def redact_all(text: str, replacement: str = "token") -> tuple[str, list[Entity]
     for entity in non_overlapping:
         result.append(text[cursor:entity.start])
         if replacement == "mask":
-            if entity.type in ("AADHAAR", "PAN", "MOBILE_IN", "UPI_ID"):
+            if entity.type in ("AADHAAR", "PAN", "MOBILE_IN", "UPI_ID",
+                               "PASSPORT_IN", "VOTER_ID", "DL_IN"):
                 result.append(_mask(entity))
             elif entity.type == "CREDIT_CARD":
                 digits = _re.sub(r'\D', '', entity.value)

@@ -7,20 +7,84 @@ on:
     branches: [main, master]
 
 jobs:
-  test-pii-shield:
-    name: PII Shield tests
+  # ── Python SDK ─────────────────────────────────────────────────────────────
+  sdk-python:
+    name: Python SDK (py${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Build wheel
+        run: |
+          pip install build
+          python -m build
+        working-directory: sdk/python
+      - name: Smoke test (import + detect)
+        run: |
+          pip install sdk/python/dist/*.whl
+          python -c "
+          import svitch
+          r = svitch.redact('Aadhaar 9876 5432 1098, PAN ABCDE1234F')
+          assert '[AADHAAR]' in r.text and '[PAN]' in r.text, f'redact failed: {r.text}'
+          r2 = svitch.redact('Voter ID ABC1234567, DL No. MH01 2011 0012345')
+          assert '[VOTER_ID]' in r2.text and '[DL_IN]' in r2.text, f'new entities failed: {r2.text}'
+          from svitch_tracer import SvitchTracer, AsyncRunContext
+          print('SDK smoke test passed')
+          "
+
+  # ── Node.js SDK ────────────────────────────────────────────────────────────
+  sdk-node:
+    name: Node.js SDK (node${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: ["20", "22"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+          cache-dependency-path: sdk/node/package-lock.json
+      - run: npm install
+        working-directory: sdk/node
+      - run: npm run build
+        working-directory: sdk/node
+      - name: Smoke test (import + detect)
+        run: |
+          node -e "
+          import('./sdk/node/dist/index.js').then(({ detect, redact }) => {
+            const r = redact('Aadhaar 9876 5432 1098, PAN ABCDE1234F');
+            if (!r.text.includes('[AADHAAR]')) throw new Error('AADHAAR not redacted: ' + r.text);
+            const r2 = redact('Voter ID ABC1234567');
+            if (!r2.text.includes('[VOTER_ID]')) throw new Error('VOTER_ID not redacted: ' + r2.text);
+            console.log('Node SDK smoke test passed');
+          });
+          "
+
+  # ── PII Shield service ─────────────────────────────────────────────────────
+  pii-shield:
+    name: PII Shield detector tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install dependencies
-        run: pip install -r pii-shield/service/requirements.txt
-      - name: Run tests
-        run: python pii-shield/service/test_detectors.py
+          cache: pip
+          cache-dependency-path: pii-shield/service/requirements.txt
+      - run: pip install -r pii-shield/service/requirements.txt
+      - run: python test_detectors.py
+        working-directory: pii-shield/service
 
-  test-agent-tracer:
+  # ── Agent Tracer service ───────────────────────────────────────────────────
+  agent-tracer:
     name: Agent Tracer tests
     runs-on: ubuntu-latest
     steps:
@@ -28,35 +92,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Run tests
-        run: python agent-tracer/tests/test_tracer.py
+          cache: pip
+          cache-dependency-path: agent-tracer/requirements.txt
+      - run: pip install -r agent-tracer/requirements.txt
+      - run: python agent-tracer/tests/test_tracer.py
 
-  test-sdk-node:
-    name: Node.js SDK build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-      - run: npm install
-        working-directory: sdk/node
-      - run: npm run build
-        working-directory: sdk/node
-
-  test-sdk-python:
-    name: Python SDK build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - run: pip install build
-      - run: python -m build
-        working-directory: sdk/python
-
-  test-consent-ledger:
+  # ── Consent Ledger service ─────────────────────────────────────────────────
+  consent-ledger:
     name: Consent Ledger tests
     runs-on: ubuntu-latest
     steps:
@@ -64,10 +106,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Run consent ledger tests
-        run: python consent-ledger/tests/test_ledger.py
+          cache: pip
+          cache-dependency-path: consent-ledger/requirements.txt
+      - run: pip install -r consent-ledger/requirements.txt
+      - run: python consent-ledger/tests/test_ledger.py
 
-  test-compliance:
+  # ── Compliance Engine ──────────────────────────────────────────────────────
+  compliance-engine:
     name: Compliance Engine tests
     runs-on: ubuntu-latest
     steps:
@@ -75,12 +120,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install dependencies
-        run: pip install fastapi uvicorn
-      - name: Run compliance engine tests
-        run: python compliance-engine/test_reports.py
+          cache: pip
+          cache-dependency-path: compliance-engine/requirements.txt
+      - run: pip install -r compliance-engine/requirements.txt
+      - run: python compliance-engine/test_reports.py
 
-  test-enclave:
+  # ── Private Enclave (stdlib only, no deps) ─────────────────────────────────
+  private-enclave:
     name: Private Enclave tests
     runs-on: ubuntu-latest
     steps:
@@ -88,7 +134,4 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install dependencies
-        run: pip install fastapi uvicorn httpx
-      - name: Run enclave integration tests
-        run: python private-enclave/test_enclave.py
+      - run: python private-enclave/test_enclave.py

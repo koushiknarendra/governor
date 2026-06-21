@@ -112,6 +112,25 @@ with tracer.run() as run:
 valid, err = run.verify()   # cryptographic proof the chain is intact
 ```
 
+### Async-native audit trail (FastAPI / asyncio)
+
+```python
+from svitch_tracer import SvitchTracer
+
+tracer = SvitchTracer(agent_id="loan-processor-v2")
+
+# Works natively inside FastAPI route handlers, LangGraph, or any asyncio agent
+async with tracer.arun() as run:
+    run.data_access("crm", ["aadhaar", "pan"], "loan_processing", "CUST-5821")
+    run.llm_call("openai", "gpt-4o", "[AADHAAR_IN] applicant", "Eligible.")
+    run.decision("Score above threshold", "approve", confidence=0.87)
+    valid, err = await run.verify()  # non-blocking verify
+
+# run.data_access / run.llm_call / run.decision are fire-and-forget:
+# they schedule a background asyncio.Task and return immediately,
+# so they never block the event loop.
+```
+
 ### PII redaction + audit trail in one call
 
 ```python
@@ -196,6 +215,9 @@ const client = wrap(new OpenAI({ apiKey: process.env.OPENAI_API_KEY }));
 | `MOBILE_IN` | `9876543210`, `+91 98765 43210` |
 | `BANK_ACCOUNT` | 9–18 digit account numbers |
 | `GST` | `22AAAAA0000A1Z5` |
+| `VOTER_ID` | `ABC1234567` (EPIC — 3 letters + 7 digits) |
+| `PASSPORT_IN` | `A1234567` (keyword-anchored) |
+| `DL_IN` | `MH01 2011 0012345` (keyword-anchored) |
 
 **GDPR / EU**
 
@@ -320,6 +342,7 @@ export SVITCH_TRACER_URL=http://localhost:8002
 - [x] HIPAA-AI Compliance Spec v1.0 — 12 controls, all 18 Safe Harbor identifiers ([spec/hipaa-ai-v1.json](spec/hipaa-ai-v1.json))
 - [x] OpenTelemetry integration — `SvitchOtelTracer` bridges audit trail to Datadog, Jaeger, Honeycomb
 - [x] `svitch.wrap(client, tracer=tracer)` — PII redaction + audit trail in one call
+- [x] Async-native tracer — `async with tracer.arun()` for FastAPI / asyncio agents
 - [ ] Private inference enclave — air-gapped Llama/Mistral
 
 ---
@@ -330,7 +353,6 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Good first issues are tagged [`good firs
 
 High-value contributions right now:
 - Additional Indian PII patterns (Voter ID / EPIC, Passport, Driving Licence)
-- Async-native tracer (`async with tracer.run()`) for asyncio agents
 - Additional GDPR entity patterns (NHS number, BSN, NIF, PESEL)
 
 ---

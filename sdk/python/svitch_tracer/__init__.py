@@ -1,7 +1,7 @@
 """
 svitch_tracer — DPDP-compliant agent audit trail
 
-Usage:
+Sync usage:
     from svitch_tracer import SvitchTracer
 
     tracer = SvitchTracer(agent_id="loan-processor-v2")
@@ -19,6 +19,20 @@ Usage:
 
     valid, err = run.verify()
 
+Async usage (FastAPI / asyncio agents):
+    from svitch_tracer import SvitchTracer
+
+    tracer = SvitchTracer(agent_id="loan-processor-v2")
+
+    async with tracer.arun() as run:
+        run.data_access("crm", ["aadhaar", "pan"], "kyc_verification", "CUST-001")
+        run.llm_call("openai", "gpt-4o", "[AADHAAR_IN] review", "Eligible.")
+        run.decision("Score above threshold", "approve", confidence=0.87)
+        valid, err = await run.verify()
+
+    # Logging methods are fire-and-forget — they never block the event loop.
+    # Only verify() needs to be awaited.
+
 Environment:
     SVITCH_TRACER_URL — Agent Tracer API base URL
                         default: https://agent-tracer.vercel.app
@@ -26,16 +40,17 @@ Environment:
 
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 import uuid
-from contextlib import contextmanager
-from typing import Generator, Optional
+from contextlib import asynccontextmanager, contextmanager
+from typing import AsyncGenerator, Generator, Optional
 from urllib.error import URLError
 from urllib.request import Request, urlopen
 
-__version__ = "0.1.0"
-__all__ = ["SvitchTracer", "RunContext"]
+__version__ = "0.1.3"
+__all__ = ["SvitchTracer", "RunContext", "AsyncRunContext"]
 
 _DEFAULT_URL = "https://agent-tracer.vercel.app"
 
@@ -184,6 +199,66 @@ class RunContext:
         pass
 
 
+class AsyncRunContext(RunContext):
+    """
+    Async-native RunContext for asyncio agents (FastAPI, LangGraph, etc.).
+
+    All logging methods fire-and-forget via a background asyncio task — they
+    never block the event loop.  ``verify()`` is awaitable.
+
+    Returned by ``SvitchTracer.arun()``:
+
+        async with tracer.arun() as run:
+            run.data_access("db", ["aadhaar"], "kyc")
+            run.llm_call("openai", "gpt-4o", prompt, response)
+            valid, err = await run.verify()
+    """
+
+    def _post(
+        self,
+        event_type: str,
+        data: dict,
+        *,
+        pii_types: list[str] | None = None,
+        pii_redacted: bool = False,
+        human_approved: bool | None = None,
+    ) -> None:
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            # No running event loop — called from a sync context, fall back
+            super()._post(
+                event_type, data,
+                pii_types=pii_types, pii_redacted=pii_redacted,
+                human_approved=human_approved,
+            )
+            return
+
+        # Run the blocking urlopen in a thread pool so the event loop is never blocked
+        async def _send() -> None:
+            try:
+                await asyncio.to_thread(
+                    super(AsyncRunContext, self)._post,
+                    event_type, data,
+                    pii_types=pii_types, pii_redacted=pii_redacted,
+                    human_approved=human_approved,
+                )
+            except Exception:
+                pass
+
+        loop.create_task(_send())
+
+    async def verify(self) -> tuple[bool, str]:  # type: ignore[override]
+        """Awaitable verify — runs the sync HTTP call in a thread pool."""
+        return await asyncio.to_thread(RunContext.verify, self)
+
+    async def __aenter__(self) -> "AsyncRunContext":
+        return self
+
+    async def __aexit__(self, *_: object) -> None:
+        pass
+
+
 class SvitchTracer:
     """
     Entry point for the Agent Tracer.
@@ -212,6 +287,24 @@ class SvitchTracer:
                 run.decision(...)
         """
         yield RunContext(
+            run_id=run_id or str(uuid.uuid4()),
+            agent_id=self.agent_id,
+            url=self._url,
+        )
+
+    @asynccontextmanager
+    async def arun(
+        self, run_id: Optional[str] = None
+    ) -> AsyncGenerator[AsyncRunContext, None]:
+        """
+        Async context manager for a single agent execution run.
+
+            async with tracer.arun() as run:
+                run.data_access("crm", ["aadhaar"], "kyc")
+                run.llm_call("openai", "gpt-4o", prompt, response)
+                valid, err = await run.verify()
+        """
+        yield AsyncRunContext(
             run_id=run_id or str(uuid.uuid4()),
             agent_id=self.agent_id,
             url=self._url,
