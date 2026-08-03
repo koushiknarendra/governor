@@ -125,7 +125,7 @@ jobs:
       - run: pip install -r compliance-engine/requirements.txt
       - run: python compliance-engine/test_reports.py
 
-  # ── Private Enclave (stdlib only, no deps) ─────────────────────────────────
+  # ── Private Enclave (spins up mock LLM + inference server in-process) ──────
   private-enclave:
     name: Private Enclave tests
     runs-on: ubuntu-latest
@@ -134,4 +134,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - run: |
+          pip install -r pii-shield/service/requirements.txt
+          pip install -r agent-tracer/requirements.txt
+          pip install -r private-enclave/inference/requirements.txt
       - run: python private-enclave/test_enclave.py
