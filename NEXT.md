@@ -1,61 +1,76 @@
 # Svitch — Next Steps
 
-Last updated: 2026-06-19
+Last updated: 2026-09-17
 
 ## State of the build
 
-Everything in v0.1.3 is done and ready to publish. Do not build more features before shipping.
+Code is done and merged through v0.1.4 (tag pushed Aug 3). The landing page, dashboard,
+and guide pages are live at svitch.ai. **But nothing has ever actually reached PyPI or
+npm** — `pip install svitch` and `npm install svitch-sdk` didn't do anything until today's
+fixes. If you read the README/landing page badges as proof the SDKs were live, they
+weren't; this file replaces the stale June 19 version that claimed otherwise.
 
 **What's complete:**
 - Python SDK (`pip install svitch`) — PII detection (Aadhaar, PAN, UPI, IFSC, Mobile, GST, Bank Account, Voter ID, Passport, DL, IBAN, UK NIN, SSN, MRN, Email, Credit Card)
-- Node.js SDK (`npm install svitch`) — same patterns, TypeScript-first
+- Node.js SDK (`npm install svitch-sdk`) — same patterns, TypeScript-first
 - `svitch.wrap(client, tracer=tracer)` — PII redaction + audit trail in one call
 - Async-native Python tracer — `async with tracer.arun() as run:` for FastAPI agents
 - Compliance specs — `spec/dpdp-ai-v1.json`, `spec/gdpr-ai-v1.json`, `spec/hipaa-ai-v1.json`
-- Landing page — svitch.ai with DPDP/GDPR/HIPAA framework cards
+- Landing page — svitch.ai with DPDP/GDPR/HIPAA framework cards (confirmed live, 200 OK)
 - Guide pages — svitch.ai/dpdp, svitch.ai/gdpr, svitch.ai/hipaa
 - Dashboard — 6 pages: Overview (multi-framework), PII Shield, Agent Tracer, Consent Ledger, Reports, Integrate
+- Repo is public: github.com/koushiknarendra/svitch (0 stars — no outbound push has happened yet)
 - GitHub Actions CI/CD — `ci.yml` (8 jobs, Python 3.10+3.12, Node 20+22) + `publish.yml` (CI gate → PyPI OIDC → npm → GitHub Release)
 
----
+## What was actually broken (found + partly fixed 2026-09-17)
 
-## Immediate actions (your side, ~1 hour total)
+1. **`publish.yml` never ran.** It called `ci.yml` as a reusable workflow (`uses: ./.github/workflows/ci.yml`),
+   but `ci.yml` had no `workflow_call` trigger, so every publish attempt (including the `v0.1.4` tag push on
+   Aug 3) failed instantly with 0 jobs executed. **Fixed** — `workflow_call:` added to `ci.yml`'s `on:` block.
+2. **npm name collision.** `svitch` on npm belongs to an unrelated, abandoned package (`svitch@0.0.1`, last
+   published 2022, different owner) — `npm publish` would 403 forever. **Fixed** — Node SDK renamed to
+   `svitch-sdk` in `sdk/node/package.json`, and every doc/landing-page code sample updated to match
+   (`README.md`, `CONTRIBUTING.md`, `web/app/{gdpr,hipaa}/page.tsx`, `web/app/dashboard/integrate/page.tsx`).
+   PyPI name `svitch` is still free — Python SDK keeps its name.
+3. **PyPI trusted publisher was never configured.** `pypi.org/pypi/svitch/json` returns 404 — the package has
+   literally never been published. Still needs the manual step below.
+4. **`NPM_TOKEN` secret was never set** (or never existed) — `publish-npm` job would fail on auth even once
+   `publish.yml` runs. Still needs the manual step below.
 
-### 1. One-time setup for PyPI trusted publishing
-- Go to pypi.org → Account Settings → Publishing
-- Add trusted publisher: owner=`koushiknarendra`, repo=`svitch`, workflow=`publish.yml`, environment=`release`
-- Go to GitHub repo → Settings → Environments → New environment → name it `release`
+## Manual steps still needed (your side — these need dashboard/CLI access I don't have)
 
-### 2. One-time setup for npm
+### 1. PyPI trusted publishing (one-time)
+- pypi.org → Account Settings → Publishing → Add a new pending publisher
+  - PyPI project name: `svitch`
+  - Owner: `koushiknarendra`, Repo: `svitch`, Workflow: `publish.yml`, Environment: `release`
+- GitHub repo → Settings → Environments → New environment → name it exactly `release`
+  (I tried to create this via `gh api` but my token doesn't have admin rights on the repo — 403)
+
+### 2. npm token (one-time)
 ```bash
 npm login
 npm token create --type=automation
-# Copy the token
 ```
-- Go to GitHub repo → Settings → Secrets → Actions → New secret
+- GitHub repo → Settings → Secrets and variables → Actions → New repository secret
 - Name: `NPM_TOKEN`, value: the token from above
 
-### 3. Make the repo public
-- GitHub repo → Settings → Danger Zone → Change visibility → Public
-
-### 4. Publish v0.1.3
+### 3. Cut the real release once 1 and 2 are done
 ```bash
 cd /Users/gk/Desktop/Projects/K/Svitch
-git add -A
-git commit -m "v0.1.3 — Voter ID, Passport, DL detection; async tracer; dashboard integrate page; CI/CD"
-git tag v0.1.3
-git push origin master --tags
+git tag v0.1.5
+git push origin v0.1.5
 ```
-CI runs → all green → PyPI and npm publish automatically → GitHub Release created.
+Watch `gh run watch` on the `Publish` workflow. If it goes green, `pip install svitch` and
+`npm install svitch-sdk` will work for real for the first time.
 
-### 5. Promote landing page to production
+### 4. Promote landing page to production (if any pending changes)
 ```bash
 cd web && vercel --prod --scope koushik-narendars-projects
 ```
 
 ---
 
-## First customer path (this week)
+## First customer path (this week, once installs actually work)
 
 Search GitHub for Indian fintech teams already deploying LLM agents without compliance:
 ```
@@ -81,10 +96,10 @@ One paying BFSI customer is worth more than any feature.
 
 ---
 
-## Spec submission (after repo is public)
+## Spec submission (after installs work and repo has some stars)
 
 Submit `spec/dpdp-ai-v1.json` to:
 - IndiaAI Mission — https://indiaai.gov.in/public-consultation
 - DSCI — contact@dsci.in
 
-This is the "standard-setting" move that separates Svitch from a library to an authority. Do it once the repo has some stars.
+This is the "standard-setting" move that separates Svitch from a library to an authority. Do it once the repo has some stars — publishing broken installs first would undercut it.

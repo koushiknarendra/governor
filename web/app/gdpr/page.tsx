@@ -560,8 +560,8 @@ result.text    # "Card: XXXX-XXXX-XXXX-0366"
 # IBAN mask preserves first 4 chars (country + check) and last 4 digits
 result = svitch.redact("IBAN GB29NWBK60161331926819", locale="eu", replacement="mask")
 result.text    # "IBAN GB29XXXXXXXXXXXXXX6819"`}</CodeBlock>
-          <CodeBlock lang="typescript">{`// npm install svitch
-import { detect, redact, wrap, SvitchTracer } from 'svitch';
+          <CodeBlock lang="typescript">{`// npm install svitch-sdk
+import { detect, redact, wrap, SvitchTracer } from 'svitch-sdk';
 
 // Detect EU entities
 const { entities } = detect("NIN: AB123456D, IBAN: GB29NWBK60161331926819", "eu");

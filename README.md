@@ -49,7 +49,7 @@ response = client.chat.completions.create(
 | [**Compliance Engine**](compliance-engine/) | Auto-generate DPDP DPIA and RBI FREE Framework reports | ✅ Live |
 | [**Dashboard**](web/) | Compliance overview, live service health, DPIA generator | ✅ [svitch.ai](https://svitch.ai/dashboard) |
 | [**Python SDK**](sdk/python/) | `pip install svitch` — zero dependencies, runs locally | ✅ PyPI |
-| [**Node.js SDK**](sdk/node/) | `npm install svitch` — TypeScript-first, same API | ✅ npm |
+| [**Node.js SDK**](sdk/node/) | `npm install svitch-sdk` — TypeScript-first, same API | ✅ npm |
 
 ---
 
@@ -150,7 +150,7 @@ response = client.chat.completions.create(
 
 ```typescript
 import OpenAI from 'openai';
-import { wrap, SvitchTracer } from 'svitch';
+import { wrap, SvitchTracer } from 'svitch-sdk';
 
 const tracer = new SvitchTracer('loan-processor-v2');
 const client = wrap(new OpenAI(), { locale: 'in', tracer });
@@ -191,7 +191,7 @@ credit cards, and all other detected entity types are replaced with `[ENTITY_TYP
 ### TypeScript / Node.js
 
 ```typescript
-import { detect, redact, wrap } from 'svitch';
+import { detect, redact, wrap } from 'svitch-sdk';
 import OpenAI from 'openai';
 
 const { entities } = detect("My UPI is rahul@okicici, PAN ABCDE1234F");
@@ -328,7 +328,7 @@ export SVITCH_TRACER_URL=http://localhost:8002
 - [x] India PII detection — Aadhaar, PAN, UPI, IFSC, mobile, GST, bank accounts
 - [x] OpenAI + Anthropic client wrappers
 - [x] Python SDK (`pip install svitch`) — zero dependencies
-- [x] Node.js SDK (`npm install svitch`) — TypeScript-first
+- [x] Node.js SDK (`npm install svitch-sdk`) — TypeScript-first
 - [x] Agent audit trail — hash-chained, tamper-evident
 - [x] DPDP DPIA auto-generation
 - [x] RBI FREE Framework self-assessment

@@ -584,9 +584,9 @@ result.text    # "SSN: XXX-XX-6789"`}</CodeBlock>
 
           {/* Audit implementation */}
           <H2 id="impl-audit">Implementation: HIPAA-compliant AI audit trail</H2>
-          <CodeBlock lang="typescript">{`// npm install svitch
+          <CodeBlock lang="typescript">{`// npm install svitch-sdk
 import { SvitchTracer } from 'svitch/tracer';
-import { wrap } from 'svitch';
+import { wrap } from 'svitch-sdk';
 import OpenAI from 'openai';
 
 const tracer = new SvitchTracer('clinical-coder-v2');

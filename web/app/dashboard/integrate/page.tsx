@@ -109,9 +109,9 @@ print(valid, err)   # True, "chain intact"`,
 };
 
 const NODE_STEPS = {
-  install: `npm install svitch`,
+  install: `npm install svitch-sdk`,
   wrap: `import OpenAI from 'openai';
-import { wrap } from 'svitch';
+import { wrap } from 'svitch-sdk';
 
 // Drop-in replacement — PII is redacted before prompts leave your code
 const client = wrap(new OpenAI());
@@ -124,7 +124,7 @@ const response = await client.chat.completions.create({
 });
 // "Aadhaar 9876 5432 1098" → "[AADHAAR_IN]"`,
   tracer: `import OpenAI from 'openai';
-import { wrap, SvitchTracer } from 'svitch';
+import { wrap, SvitchTracer } from 'svitch-sdk';
 
 const tracer = new SvitchTracer('loan-processor-v2');
 

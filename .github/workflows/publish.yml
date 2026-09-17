@@ -79,7 +79,7 @@ jobs:
             ```
 
             ```bash
-            npm install svitch@${{ steps.ver.outputs.VERSION }}
+            npm install svitch-sdk@${{ steps.ver.outputs.VERSION }}
             ```
 
             See the [README](https://github.com/koushiknarendra/svitch#quickstart) for full usage.

@@ -19,7 +19,7 @@ consent-ledger/    FastAPI consent ledger service
 compliance-engine/ FastAPI DPDP DPIA + RBI FREE report generator
 sdk/
   python/          pip install svitch  (svitch + svitch_tracer)
-  node/            npm install svitch  (TypeScript)
+  node/            npm install svitch-sdk  (TypeScript)
 web/               Next.js dashboard at svitch.ai
 ```
 
