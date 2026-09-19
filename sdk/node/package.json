@@ -1,6 +1,6 @@
 {
   "name": "svitch-sdk",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Privacy-first AI infrastructure — PII detection and redaction for LLM prompts. Covers Aadhaar, PAN, UPI (India), IBAN, UK NIN (GDPR), SSN, credit cards (HIPAA), and more.",
   "keywords": ["pii", "privacy", "llm", "security", "compliance", "gdpr", "dpdp", "hipaa", "aadhaar", "pan", "upi", "iban", "ssn", "redact", "openai", "anthropic", "langchain"],
   "homepage": "https://svitch.ai",

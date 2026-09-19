@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "svitch"
-version = "0.1.4"
+version = "0.1.5"
 description = "Privacy-first AI infrastructure — PII detection, redaction, agent audit trails, and compliance reports for teams building AI on sensitive data."
 readme = "README.md"
 license = { text = "Apache-2.0" }

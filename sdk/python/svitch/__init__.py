@@ -4,7 +4,7 @@ from .router import Router, RouteResult
 from .cache import stabilize, StabilizeResult
 
 __all__ = ["detect", "redact", "wrap", "Router", "RouteResult", "SvitchResult", "Entity", "stabilize", "StabilizeResult"]
-__version__ = "0.1.4"
+__version__ = "0.1.5"
 
 
 def __getattr__(name: str):
