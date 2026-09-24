@@ -1,76 +1,44 @@
 # Governor — Next Steps
 
-Last updated: 2026-09-17
+Last updated: 2026-09-24
 
 ## State of the build
 
-Code is done and merged through v0.1.4 (tag pushed Aug 3). The landing page, dashboard,
-and guide pages are live at governor.so. **But nothing has ever actually reached PyPI or
-npm** — `pip install pygovernor` and `npm install governor-sdk` didn't do anything until today's
-fixes. If you read the README/landing page badges as proof the SDKs were live, they
-weren't; this file replaces the stale June 19 version that claimed otherwise.
+Everything is live, for real, for the first time. Renamed from Svitch to Governor
+(2026-09-24) — repo, packages, domain, all of it.
 
-**What's complete:**
-- Python SDK (`pip install pygovernor`) — PII detection (Aadhaar, PAN, UPI, IFSC, Mobile, GST, Bank Account, Voter ID, Passport, DL, IBAN, UK NIN, SSN, MRN, Email, Credit Card)
-- Node.js SDK (`npm install governor-sdk`) — same patterns, TypeScript-first
+**What's complete and live:**
+- Python SDK — `pip install pygovernor` (PyPI distribution name; `import governor` in code).
+  PII detection: Aadhaar, PAN, UPI, IFSC, Mobile, GST, Bank Account, Voter ID, Passport, DL,
+  IBAN, UK NIN, SSN, MRN, Email, Credit Card
+- Node.js SDK — `npm install governor-sdk`, TypeScript-first, same patterns
 - `governor.wrap(client, tracer=tracer)` — PII redaction + audit trail in one call
 - Async-native Python tracer — `async with tracer.arun() as run:` for FastAPI agents
 - Compliance specs — `spec/dpdp-ai-v1.json`, `spec/gdpr-ai-v1.json`, `spec/hipaa-ai-v1.json`
-- Landing page — governor.so with DPDP/GDPR/HIPAA framework cards (confirmed live, 200 OK)
-- Guide pages — governor.so/dpdp, governor.so/gdpr, governor.so/hipaa
+- Landing page + dashboard + guide pages — live at governor.so (SSL confirmed working)
 - Dashboard — 6 pages: Overview (multi-framework), PII Shield, Agent Tracer, Consent Ledger, Reports, Integrate
-- Repo is public: github.com/koushiknarendra/governor (0 stars — no outbound push has happened yet)
-- GitHub Actions CI/CD — `ci.yml` (8 jobs, Python 3.10+3.12, Node 20+22) + `publish.yml` (CI gate → PyPI OIDC → npm → GitHub Release)
+- Repo: github.com/koushiknarendra/governor
+- GitHub Actions CI/CD — `ci.yml` + `publish.yml` (CI gate → PyPI OIDC → npm → GitHub Release), both green as of v0.2.0
 
-## What was actually broken (found + partly fixed 2026-09-17)
+**Naming notes (don't re-litigate these):**
+- PyPI project name is `pygovernor`, not `governor` — `governor` was already taken by an
+  unrelated (and conceptually adjacent — "AI agent governance") package. Distribution name
+  differs from the import name on purpose, same pattern as `beautifulsoup4` → `import bs4`.
+- npm project name is `governor-sdk` — bare `governor` on npm belongs to an unrelated
+  abandoned package.
+- The old `svitch` PyPI release (v0.1.5) is yanked, not deleted, with a note pointing to `pygovernor`.
 
-1. **`publish.yml` never ran.** It called `ci.yml` as a reusable workflow (`uses: ./.github/workflows/ci.yml`),
-   but `ci.yml` had no `workflow_call` trigger, so every publish attempt (including the `v0.1.4` tag push on
-   Aug 3) failed instantly with 0 jobs executed. **Fixed** — `workflow_call:` added to `ci.yml`'s `on:` block.
-2. **npm name collision.** `governor` on npm belongs to an unrelated, abandoned package (`governor@0.0.1`, last
-   published 2022, different owner) — `npm publish` would 403 forever. **Fixed** — Node SDK renamed to
-   `governor-sdk` in `sdk/node/package.json`, and every doc/landing-page code sample updated to match
-   (`README.md`, `CONTRIBUTING.md`, `web/app/{gdpr,hipaa}/page.tsx`, `web/app/dashboard/integrate/page.tsx`).
-   PyPI name `governor` is still free — Python SDK keeps its name.
-3. **PyPI trusted publisher was never configured.** `pypi.org/pypi/pygovernor/json` returns 404 — the package has
-   literally never been published. Still needs the manual step below.
-4. **`NPM_TOKEN` secret was never set** (or never existed) — `publish-npm` job would fail on auth even once
-   `publish.yml` runs. Still needs the manual step below.
+## One loose end
 
-## Manual steps still needed (your side — these need dashboard/CLI access I don't have)
-
-### 1. PyPI trusted publishing (one-time)
-- pypi.org → Account Settings → Publishing → Add a new pending publisher
-  - PyPI project name: `governor`
-  - Owner: `koushiknarendra`, Repo: `governor`, Workflow: `publish.yml`, Environment: `release`
-- GitHub repo → Settings → Environments → New environment → name it exactly `release`
-  (I tried to create this via `gh api` but my token doesn't have admin rights on the repo — 403)
-
-### 2. npm token (one-time)
-```bash
-npm login
-npm token create --type=automation
-```
-- GitHub repo → Settings → Secrets and variables → Actions → New repository secret
-- Name: `NPM_TOKEN`, value: the token from above
-
-### 3. Cut the real release once 1 and 2 are done
-```bash
-cd /Users/gk/Desktop/Projects/K/Governor
-git tag v0.1.5
-git push origin v0.1.5
-```
-Watch `gh run watch` on the `Publish` workflow. If it goes green, `pip install pygovernor` and
-`npm install governor-sdk` will work for real for the first time.
-
-### 4. Promote landing page to production (if any pending changes)
-```bash
-cd web && vercel --prod --scope koushik-narendars-projects
-```
+CI's `NPM_TOKEN` (granular access token) doesn't have **"Bypass two-factor authentication"**
+checked yet. The *next* tag-triggered release will 403 on the npm publish step until this is
+fixed. Not urgent — v0.2.0 is live, this only matters for v0.2.1+.
+- npmjs.com → Access Tokens → edit/regenerate the CI token → check "Bypass 2FA" → update the
+  `NPM_TOKEN` secret on GitHub.
 
 ---
 
-## First customer path (this week, once installs actually work)
+## First customer path (do this next — installs actually work now)
 
 Search GitHub for Indian fintech teams already deploying LLM agents without compliance:
 ```
@@ -96,10 +64,12 @@ One paying BFSI customer is worth more than any feature.
 
 ---
 
-## Spec submission (after installs work and repo has some stars)
+## Spec submission (after repo has some stars)
 
 Submit `spec/dpdp-ai-v1.json` to:
 - IndiaAI Mission — https://indiaai.gov.in/public-consultation
 - DSCI — contact@dsci.in
 
-This is the "standard-setting" move that separates Governor from a library to an authority. Do it once the repo has some stars — publishing broken installs first would undercut it.
+This is the "standard-setting" move that separates Governor from a library to an authority.
+Do it once the repo has some stars and real installs — the rename delayed this, don't rush it
+now either.
