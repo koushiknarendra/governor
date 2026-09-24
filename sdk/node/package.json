@@ -1,6 +1,6 @@
 {
   "name": "governor-sdk",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "description": "Privacy-first AI infrastructure — PII detection and redaction for LLM prompts. Covers Aadhaar, PAN, UPI (India), IBAN, UK NIN (GDPR), SSN, credit cards (HIPAA), and more.",
   "keywords": ["pii", "privacy", "llm", "security", "compliance", "gdpr", "dpdp", "hipaa", "aadhaar", "pan", "upi", "iban", "ssn", "redact", "openai", "anthropic", "langchain"],
   "homepage": "https://governor.so",
