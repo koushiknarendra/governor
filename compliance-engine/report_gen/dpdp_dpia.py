@@ -5,7 +5,7 @@ Generates a DPIA aligned with India's Digital Personal Data Protection Act 2023.
 Significant Data Fiduciaries are required to conduct DPIAs under Section 10(2)(b).
 
 The report is populated from:
-  - Svitch Agent Tracer audit records (what data was processed, by which agents)
+  - Governor Agent Tracer audit records (what data was processed, by which agents)
   - Manual inputs (organisation details, processing activities)
   - Automatic inferences (PII types detected, human checkpoints, third-party calls)
 """
@@ -20,7 +20,7 @@ from typing import Optional
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.join(ROOT, "agent-tracer"))
-os.environ.setdefault("SVITCH_DB_PATH", os.path.join(ROOT, "svitch_audit.db"))
+os.environ.setdefault("GOVERNOR_DB_PATH", os.path.join(ROOT, "governor_audit.db"))
 
 from .base import CheckItem, RiskItem, ProcessingActivity, ReportMeta, BaseReport
 
@@ -102,7 +102,7 @@ def generate(
         period_end: Assessment period end (YYYY-MM-DD)
         generated_at: Generation timestamp (ISO 8601)
         processing_activities: List of ProcessingActivity describing AI workflows
-        run_ids: Optional list of Svitch Tracer run IDs to pull telemetry from
+        run_ids: Optional list of Governor Tracer run IDs to pull telemetry from
         dpo_name: Name of the Data Protection Officer
         is_sdf: Whether the organisation is a Significant Data Fiduciary
     """
@@ -146,7 +146,7 @@ def generate(
             id="S2.1",
             requirement="Processing is limited to the stated purpose (data minimisation)",
             status="compliant" if tracer_summary["pii_events"] > 0 else "not_assessed",
-            evidence="Svitch PII Shield redacts personal data not required for the stated purpose before LLM processing.",
+            evidence="Governor PII Shield redacts personal data not required for the stated purpose before LLM processing.",
         ),
         CheckItem(
             id="S2.2",
@@ -209,13 +209,13 @@ def generate(
         evidence = ""
         if ref == "S8(1)":
             status = "compliant"
-            evidence = "Svitch PII Shield enforces processing only for declared purpose."
+            evidence = "Governor PII Shield enforces processing only for declared purpose."
         elif ref == "S8(3)":
             status = "compliant"
             evidence = "AES-256 encryption at rest; TLS 1.3 in transit; WireGuard tunnel for Private Enclave."
         elif ref == "S8(4)":
             status = "partial"
-            evidence = "Svitch audit log provides tamper-evident breach evidence trail."
+            evidence = "Governor audit log provides tamper-evident breach evidence trail."
             gap = "Automated DPBI breach notification workflow not yet implemented (72-hour window)."
         elif ref == "S8(5)":
             status = "partial"
@@ -230,7 +230,7 @@ def generate(
             gap = "No DPO appointed." if not dpo_name else ""
         elif ref == "S10(3)":
             status = "partial"
-            evidence = "Svitch agent telemetry provides audit data; formal auditor not yet engaged."
+            evidence = "Governor agent telemetry provides audit data; formal auditor not yet engaged."
             gap = "Engage a CERT-In empanelled auditor for annual data audit."
         else:
             status = "compliant"
@@ -255,7 +255,7 @@ def generate(
             description="Sensitive personal data (Aadhaar/PAN) transmitted to third-party LLM API without redaction",
             likelihood="low" if "AADHAAR" in tracer_summary["pii_types_seen"] and tracer_summary["pii_events"] > 0 else "medium",
             impact="high",
-            mitigation="Svitch PII Shield redacts Aadhaar and PAN before every LLM API call. Verified by audit log.",
+            mitigation="Governor PII Shield redacts Aadhaar and PAN before every LLM API call. Verified by audit log.",
             residual_risk="low",
         ),
         RiskItem(
@@ -271,7 +271,7 @@ def generate(
             description="Audit log tampered with after the fact, destroying evidence trail",
             likelihood="low",
             impact="high",
-            mitigation="Svitch Agent Tracer uses SHA-256 Merkle chain — any tampering breaks chain verification.",
+            mitigation="Governor Agent Tracer uses SHA-256 Merkle chain — any tampering breaks chain verification.",
             residual_risk="low",
         ),
         RiskItem(
@@ -287,7 +287,7 @@ def generate(
             description="Personal data breach notification not sent within 72 hours (Section 8(4))",
             likelihood="medium",
             impact="high",
-            mitigation="Svitch audit log provides breach evidence. Manual notification process in place.",
+            mitigation="Governor audit log provides breach evidence. Manual notification process in place.",
             residual_risk="medium",
         ),
     ]
@@ -305,13 +305,13 @@ def generate(
         "measures": [
             {
                 "category": "PII Detection & Redaction",
-                "measure": "Svitch PII Shield — real-time detection and redaction of Indian PII (Aadhaar, PAN, UPI, IFSC, mobile) before any LLM API call.",
+                "measure": "Governor PII Shield — real-time detection and redaction of Indian PII (Aadhaar, PAN, UPI, IFSC, mobile) before any LLM API call.",
                 "standard": "DPDP Section 8(3), ISO 27001 A.8.12",
                 "status": "implemented",
             },
             {
                 "category": "Audit Trail",
-                "measure": "Svitch Agent Tracer — append-only, SHA-256 Merkle-chained log of every agent decision, LLM call, and data access event.",
+                "measure": "Governor Agent Tracer — append-only, SHA-256 Merkle-chained log of every agent decision, LLM call, and data access event.",
                 "standard": "DPDP Section 10(3), RBI FREE Framework R3",
                 "status": "implemented",
             },
@@ -346,7 +346,7 @@ def generate(
     score = _estimate_score(checks_s2, checks_s3, checks_s4)
     dpo_text = (
         f"Based on the assessment, {organisation} has implemented strong technical controls "
-        f"through the Svitch platform. The overall compliance posture is {score}%. "
+        f"through the Governor platform. The overall compliance posture is {score}%. "
         f"Key gaps: automated data erasure workflow and DPBI breach notification pipeline. "
         f"Recommend prioritising these in the next sprint before the DPDP enforcement deadline."
     )
@@ -392,7 +392,7 @@ def _pull_tracer_data(run_ids: list[str]) -> dict:
         "models_used": [],
     }
     try:
-        from svitch_tracer.storage.db import init_db, get_run
+        from governor_tracer.storage.db import init_db, get_run
         init_db()
 
         if not run_ids:

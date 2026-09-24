@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   }
 
   const res = NextResponse.json({ ok: true });
-  res.cookies.set("svitch_auth", expected, {
+  res.cookies.set("governor_auth", expected, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
@@ -21,6 +21,6 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE() {
   const res = NextResponse.json({ ok: true });
-  res.cookies.set("svitch_auth", "", { maxAge: 0, path: "/" });
+  res.cookies.set("governor_auth", "", { maxAge: 0, path: "/" });
   return res;
 }

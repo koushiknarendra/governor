@@ -11,7 +11,7 @@ from models import (
 )
 
 app = FastAPI(
-    title="Svitch PII Shield",
+    title="Governor PII Shield",
     description="AI data security layer — detect and redact Indian and global PII from LLM prompts and responses.",
     version="0.1.0",
 )

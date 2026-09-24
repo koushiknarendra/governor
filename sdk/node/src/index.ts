@@ -1,7 +1,7 @@
 import * as P from './patterns.js';
-import { SvitchTracer, RunContext } from './tracer.js';
+import { GovernorTracer, RunContext } from './tracer.js';
 
-export { SvitchTracer, RunContext };
+export { GovernorTracer, RunContext };
 
 // ── Public types ──────────────────────────────────────────────────────────────
 
@@ -195,9 +195,9 @@ type AnyClient = Record<string | symbol, any>;
 
 export interface WrapOptions {
   locale?: Locale;
-  /** Optional SvitchTracer. When provided, every LLM call is logged as a
+  /** Optional GovernorTracer. When provided, every LLM call is logged as a
    *  hash-chained audit event with PII-redacted prompt and response. */
-  tracer?: SvitchTracer;
+  tracer?: GovernorTracer;
 }
 
 /**
@@ -212,18 +212,18 @@ export interface WrapOptions {
  *
  * @example
  * // PII redaction + audit trail
- * const tracer = new SvitchTracer('loan-agent-v2');
+ * const tracer = new GovernorTracer('loan-agent-v2');
  * const client = wrap(new OpenAI(), { locale: 'us', tracer });
  */
 export function wrap(client: AnyClient, opts?: Locale | WrapOptions): AnyClient {
   const locale: Locale = typeof opts === 'string' ? opts : (opts?.locale ?? 'all');
-  const tracer: SvitchTracer | undefined = typeof opts === 'object' ? opts?.tracer : undefined;
+  const tracer: GovernorTracer | undefined = typeof opts === 'object' ? opts?.tracer : undefined;
 
   const name = client?.constructor?.name ?? '';
   if (name.includes('OpenAI'))    return wrapOpenAI(client, locale, tracer);
   if (name.includes('Anthropic')) return wrapAnthropic(client, locale, tracer);
   throw new Error(
-    `svitch.wrap() does not recognise client type "${name}". ` +
+    `governor.wrap() does not recognise client type "${name}". ` +
     'Supported: OpenAI, Anthropic.',
   );
 }
@@ -248,7 +248,7 @@ function joinPrompt(messages: any[]): string {
 }
 
 function logLlm(
-  tracer: SvitchTracer,
+  tracer: GovernorTracer,
   provider: string,
   model: string,
   prompt: string,
@@ -261,7 +261,7 @@ function logLlm(
   } catch (_) { /* fire-and-forget — never throw inside a client call */ }
 }
 
-function wrapOpenAI(client: AnyClient, locale: Locale, tracer: SvitchTracer | undefined): AnyClient {
+function wrapOpenAI(client: AnyClient, locale: Locale, tracer: GovernorTracer | undefined): AnyClient {
   return new Proxy(client, {
     get(target, prop) {
       if (prop !== 'chat') return target[prop];
@@ -288,7 +288,7 @@ function wrapOpenAI(client: AnyClient, locale: Locale, tracer: SvitchTracer | un
   });
 }
 
-function wrapAnthropic(client: AnyClient, locale: Locale, tracer: SvitchTracer | undefined): AnyClient {
+function wrapAnthropic(client: AnyClient, locale: Locale, tracer: GovernorTracer | undefined): AnyClient {
   return new Proxy(client, {
     get(target, prop) {
       if (prop !== 'messages') return target[prop];

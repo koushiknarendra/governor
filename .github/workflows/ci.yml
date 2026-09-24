@@ -30,12 +30,12 @@ jobs:
         run: |
           pip install sdk/python/dist/*.whl
           python -c "
-          import svitch
-          r = svitch.redact('Aadhaar 9876 5432 1098, PAN ABCDE1234F')
+          import governor
+          r = governor.redact('Aadhaar 9876 5432 1098, PAN ABCDE1234F')
           assert '[AADHAAR]' in r.text and '[PAN]' in r.text, f'redact failed: {r.text}'
-          r2 = svitch.redact('Voter ID ABC1234567, DL No. MH01 2011 0012345')
+          r2 = governor.redact('Voter ID ABC1234567, DL No. MH01 2011 0012345')
           assert '[VOTER_ID]' in r2.text and '[DL_IN]' in r2.text, f'new entities failed: {r2.text}'
-          from svitch_tracer import SvitchTracer, AsyncRunContext
+          from governor_tracer import GovernorTracer, AsyncRunContext
           print('SDK smoke test passed')
           "
 

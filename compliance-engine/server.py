@@ -1,5 +1,5 @@
 """
-Svitch Compliance Engine API
+Governor Compliance Engine API
 
 POST /report/dpdp-dpia    → Generate a DPDP DPIA report
 POST /report/rbi-free     → Generate an RBI FREE self-assessment
@@ -24,14 +24,14 @@ from pydantic import BaseModel
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, "agent-tracer"))
-os.environ.setdefault("SVITCH_DB_PATH", os.path.join(ROOT, "svitch_audit.db"))
+os.environ.setdefault("GOVERNOR_DB_PATH", os.path.join(ROOT, "governor_audit.db"))
 
 from report_gen import generate_dpia, generate_rbi_free
 from report_gen.base import ProcessingActivity
 from render_html import render_dpia, render_rbi_free
 
 app = FastAPI(
-    title="Svitch Compliance Engine",
+    title="Governor Compliance Engine",
     description="Auto-generate DPDP DPIA and RBI FREE compliance reports from agent telemetry.",
     version="0.1.0",
 )

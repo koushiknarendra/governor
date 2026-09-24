@@ -1,5 +1,5 @@
 """
-Svitch Consent Ledger API
+Governor Consent Ledger API
 
 POST /consent/grant          — Record a new consent grant
 POST /consent/{id}/withdraw  — Withdraw consent
@@ -16,7 +16,7 @@ import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
-os.environ.setdefault("SVITCH_CONSENT_DB", "/tmp/svitch_consent.db")
+os.environ.setdefault("GOVERNOR_CONSENT_DB", "/tmp/governor_consent.db")
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -27,7 +27,7 @@ from typing import Optional
 import ledger as L
 
 app = FastAPI(
-    title="Svitch Consent Ledger",
+    title="Governor Consent Ledger",
     description="DPDP-compliant consent records — cryptographically verifiable, independently auditable.",
     version="0.1.0",
 )

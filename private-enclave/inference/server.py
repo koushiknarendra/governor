@@ -1,5 +1,5 @@
 """
-Svitch Private Enclave — Inference Server
+Governor Private Enclave — Inference Server
 
 OpenAI-compatible API proxy that sits in front of a local vLLM instance.
 Every request passes through the PII Shield before reaching the model,
@@ -10,7 +10,7 @@ Customers connect via WireGuard and point their OpenAI client to this server:
     import openai
     client = openai.OpenAI(
         base_url="http://10.0.0.1:8080/v1",
-        api_key="svitch-enclave",          # any non-empty string
+        api_key="governor-enclave",          # any non-empty string
     )
     response = client.chat.completions.create(
         model="llama-3.1-8b-instruct",
@@ -43,7 +43,7 @@ except ImportError:
     _PII_AVAILABLE = False
 
 try:
-    from svitch_tracer import SvitchTracer
+    from governor_tracer import GovernorTracer
     _TRACER_AVAILABLE = True
 except ImportError:
     _TRACER_AVAILABLE = False
@@ -51,21 +51,21 @@ except ImportError:
 # ── Config ────────────────────────────────────────────────────────────────────
 VLLM_BASE_URL   = os.environ.get("VLLM_BASE_URL", "http://localhost:8000")
 DEFAULT_MODEL   = os.environ.get("DEFAULT_MODEL", "llama-3.1-8b-instruct")
-ENCLAVE_ID      = os.environ.get("ENCLAVE_ID", "svitch-enclave-01")
+ENCLAVE_ID      = os.environ.get("ENCLAVE_ID", "governor-enclave-01")
 PII_MODE        = os.environ.get("PII_MODE", "redact")          # redact | detect | off
 TRACER_ENABLED  = os.environ.get("TRACER_ENABLED", "true") == "true"
-AUDIT_DB        = os.environ.get("SVITCH_DB_PATH", "svitch_audit.db")
+AUDIT_DB        = os.environ.get("GOVERNOR_DB_PATH", "governor_audit.db")
 
-os.environ.setdefault("SVITCH_DB_PATH", AUDIT_DB)
+os.environ.setdefault("GOVERNOR_DB_PATH", AUDIT_DB)
 
 # ── Tracer setup ──────────────────────────────────────────────────────────────
-_tracer: SvitchTracer | None = None
+_tracer: GovernorTracer | None = None
 if _TRACER_AVAILABLE and TRACER_ENABLED:
-    _tracer = SvitchTracer(agent_id=ENCLAVE_ID)
+    _tracer = GovernorTracer(agent_id=ENCLAVE_ID)
 
 # ── App ───────────────────────────────────────────────────────────────────────
 app = FastAPI(
-    title="Svitch Enclave",
+    title="Governor Enclave",
     description="Private AI inference — OpenAI-compatible, PII-shielded, audit-logged.",
     version="0.1.0",
 )
@@ -182,7 +182,7 @@ async def chat_completions(request: Request):
             )
 
     # Inject shield metadata into response
-    result["svitch"] = {
+    result["governor"] = {
         "pii_blocked": len(pii_types) > 0,
         "pii_types": pii_types,
         "shield_ms": shield_ms,

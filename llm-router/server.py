@@ -1,18 +1,18 @@
 """
-Svitch LLM Router — OpenAI-compatible /v1/chat/completions endpoint.
+Governor LLM Router — OpenAI-compatible /v1/chat/completions endpoint.
 
 Drop-in replacement for the OpenAI API. Change one line in your app:
     client = openai.OpenAI(base_url="https://your-router.vercel.app/v1", api_key="any")
 
 Supports:
-    model="auto"                         Svitch picks provider + model based on complexity
+    model="auto"                         Governor picks provider + model based on complexity
     model="openai/gpt-4o"                Explicit routing
     model="anthropic/claude-sonnet-4-6"  Explicit routing
 
 Environment variables:
     OPENAI_API_KEY      — enables OpenAI provider
     ANTHROPIC_API_KEY   — enables Anthropic provider
-    SVITCH_API_KEY      — optional: require this key in Authorization header
+    GOVERNOR_API_KEY      — optional: require this key in Authorization header
 """
 
 from __future__ import annotations
@@ -32,7 +32,7 @@ from pydantic import BaseModel
 from typing import Optional
 
 app = FastAPI(
-    title="Svitch LLM Router",
+    title="Governor LLM Router",
     description="OpenAI-compatible endpoint — routes to the best provider automatically.",
     version="0.1.0",
 )
@@ -73,7 +73,7 @@ def _anthropic():
 
 
 def _build_router():
-    from svitch import Router
+    from governor import Router
     router = Router()
     oai = _openai()
     ant = _anthropic()
@@ -89,7 +89,7 @@ def _build_router():
 # ── Auth check (optional) ─────────────────────────────────────────────────
 
 def _check_auth(request: Request) -> None:
-    expected = os.getenv("SVITCH_API_KEY")
+    expected = os.getenv("GOVERNOR_API_KEY")
     if not expected:
         return
     auth = request.headers.get("Authorization", "")
@@ -132,7 +132,7 @@ def health():
 @app.get("/v1/models")
 def list_models(request: Request):
     _check_auth(request)
-    models = [{"id": "auto", "object": "model", "owned_by": "svitch"}]
+    models = [{"id": "auto", "object": "model", "owned_by": "governor"}]
     if os.getenv("OPENAI_API_KEY"):
         for m in ["gpt-4o", "gpt-4o-mini"]:
             models.append({"id": m, "object": "model", "owned_by": "openai"})
@@ -183,8 +183,8 @@ def chat_completions(req: ChatRequest, request: Request):
             "completion_tokens": result.usage.completion_tokens,
             "total_tokens":      result.usage.total_tokens,
         },
-        # Svitch metadata
-        "x_svitch_provider": result.provider,
-        "x_svitch_tier":     result.tier,
-        "x_svitch_model":    result.model,
+        # Governor metadata
+        "x_governor_provider": result.provider,
+        "x_governor_tier":     result.tier,
+        "x_governor_model":    result.model,
     }

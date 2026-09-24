@@ -1,10 +1,10 @@
 {
-  "$schema": "https://svitch.ai/schemas/hipaa-ai/v1",
+  "$schema": "https://governor.so/schemas/hipaa-ai/v1",
   "spec_id": "HIPAA-AI-SPEC-001",
   "version": "1.0.0",
   "title": "HIPAA-AI Compliance Specification v1.0",
   "description": "Machine-readable specification defining what the Health Insurance Portability and Accountability Act (HIPAA) requires from AI systems that process Protected Health Information (PHI). Each control maps to a HIPAA rule and sub-section, carries verifiable assertions, and identifies applicable PHI entity types.",
-  "authors": ["Svitch (https://svitch.ai)"],
+  "authors": ["Governor (https://governor.so)"],
   "license": "CC-BY-4.0",
   "effective_date": "2003-04-14",
   "jurisdiction": "United States",
@@ -89,10 +89,10 @@
         "residual_identifiers_not_transmitted"
       ],
       "implementation": {
-        "svitch_feature": "pii-shield",
+        "governor_feature": "pii-shield",
         "api_endpoint": "/redact",
-        "sdk_method": "svitch.redact(text, locale='us')",
-        "sdk_wrap": "svitch.wrap(client, locale='us')"
+        "sdk_method": "governor.redact(text, locale='us')",
+        "sdk_wrap": "governor.wrap(client, locale='us')"
       },
       "penalty_tier": "willful_neglect_uncorrected",
       "audit_event_type": "phi_deidentification"
@@ -116,7 +116,7 @@
       ],
       "implementation": {
         "note": "LLM vendor BAA status: OpenAI (openai.com/security/hipaa), Google Cloud Healthcare API (available), Azure OpenAI (available via Azure BAA), Anthropic (check current status at anthropic.com). Best practice: use de-identification (HIPAA-AI-001) so BAA scope is minimised.",
-        "best_practice": "Zero-PHI API calls via svitch.wrap() eliminates BAA dependency for LLM API tier"
+        "best_practice": "Zero-PHI API calls via governor.wrap() eliminates BAA dependency for LLM API tier"
       },
       "penalty_tier": "willful_neglect_uncorrected",
       "audit_event_type": "baa_verification"
@@ -137,7 +137,7 @@
         "minimum_necessary_review_documented"
       ],
       "implementation": {
-        "svitch_feature": "agent-tracer",
+        "governor_feature": "agent-tracer",
         "sdk_method": "run.dataAccess(source, fieldsAccessed=['only_needed_fields'], purpose='specific_purpose')"
       },
       "penalty_tier": "reasonable_cause",
@@ -161,8 +161,8 @@
         "access_logs_maintained"
       ],
       "implementation": {
-        "svitch_feature": "agent-tracer",
-        "sdk_method": "SvitchTracer(agent_id='unique-agent-id')",
+        "governor_feature": "agent-tracer",
+        "sdk_method": "GovernorTracer(agent_id='unique-agent-id')",
         "note": "agent_id functions as unique agent identity in audit trail"
       },
       "penalty_tier": "reasonable_cause",
@@ -191,7 +191,7 @@
         "note": "HIPAA requires retention of policies and documentation for 6 years from creation or last effective date. State law may require longer retention for medical records."
       },
       "implementation": {
-        "svitch_feature": "agent-tracer",
+        "governor_feature": "agent-tracer",
         "sdk_method": "run.verify() — returns valid=True if Merkle chain is intact",
         "sdk_example": "run.llmCall('openai', 'gpt-4o', '[MRN]', 'Plan: monitor vitals')"
       },
@@ -214,7 +214,7 @@
         "ai_output_provenance_tracked"
       ],
       "implementation": {
-        "svitch_feature": "agent-tracer",
+        "governor_feature": "agent-tracer",
         "sdk_method": "run.human_checkpoint(question, approved, reviewer_id) before any PHI update"
       },
       "penalty_tier": "reasonable_cause",
@@ -259,7 +259,7 @@
         "ai_audit_trail_enables_breach_scope_determination"
       ],
       "implementation": {
-        "svitch_feature": "agent-tracer",
+        "governor_feature": "agent-tracer",
         "sdk_method": "run.verify() — tamper-evident chain enables precise breach scope determination"
       },
       "penalty_tier": "willful_neglect_uncorrected",
@@ -291,7 +291,7 @@
         "risk_analysis_documented_and_reviewed_annually"
       ],
       "implementation": {
-        "svitch_feature": "compliance-engine",
+        "governor_feature": "compliance-engine",
         "api_endpoint": "/report/hipaa-risk-analysis"
       },
       "penalty_tier": "willful_neglect_uncorrected",
@@ -313,7 +313,7 @@
         "annual_training_refresher_completed"
       ],
       "implementation": {
-        "note": "Administrative control. Svitch audit trail logs who accessed PHI and when, supporting training compliance verification."
+        "note": "Administrative control. Governor audit trail logs who accessed PHI and when, supporting training compliance verification."
       },
       "penalty_tier": "reasonable_cause",
       "audit_event_type": "training_completion"
@@ -333,7 +333,7 @@
         "ai_vs_human_decision_source_distinguishable_in_records"
       ],
       "implementation": {
-        "svitch_feature": "agent-tracer",
+        "governor_feature": "agent-tracer",
         "sdk_method": "run.human_checkpoint(question='Approve treatment plan?', approved=True, reviewer_id='dr.smith.npi')"
       },
       "penalty_tier": "reasonable_cause",
@@ -355,7 +355,7 @@
         "ai_failure_does_not_corrupt_phi_records"
       ],
       "implementation": {
-        "note": "Administrative control. Svitch audit trail export to immutable storage (S3 Object Lock, GCS Retention Policy) satisfies audit trail backup requirement."
+        "note": "Administrative control. Governor audit trail export to immutable storage (S3 Object Lock, GCS Retention Policy) satisfies audit trail backup requirement."
       },
       "penalty_tier": "reasonable_cause",
       "audit_event_type": "contingency_test"
@@ -363,18 +363,18 @@
   ],
   "phi_entity_types": {
     "hipaa_18_safe_harbor": [
-      { "type": "SSN_US",    "description": "Social Security Number",                 "svitch_detected": true,  "examples": ["123-45-6789"] },
-      { "type": "MRN",       "description": "Medical Record Number (keyword-anchored)", "svitch_detected": true,  "examples": ["P123456"] },
-      { "type": "NPI",       "description": "National Provider Identifier (Luhn-validated)", "svitch_detected": true,  "examples": ["1234567893"] },
-      { "type": "US_PHONE",  "description": "US phone number",                         "svitch_detected": true,  "examples": ["+1-800-555-1234"] },
-      { "type": "EMAIL",     "description": "Email address",                           "svitch_detected": true,  "examples": ["patient@email.com"] },
-      { "type": "IPV4",      "description": "IPv4 address",                            "svitch_detected": true,  "examples": ["192.168.1.1"] },
-      { "type": "CREDIT_CARD", "description": "Payment card (Luhn-validated)",         "svitch_detected": true,  "examples": ["4532015112830366"] },
-      { "type": "US_ZIP",    "description": "US ZIP code (keyword-anchored)",           "svitch_detected": true,  "examples": ["90210"] },
-      { "type": "NAME",      "description": "Patient full name",                       "svitch_detected": false, "note": "NER model recommended; regex alone insufficient for names" },
-      { "type": "DATE_OF_BIRTH", "description": "DOB or dates related to individual", "svitch_detected": false, "note": "Date patterns require context to distinguish PHI dates from other dates" },
-      { "type": "BIOMETRIC", "description": "Fingerprint, voice, retina data",        "svitch_detected": false, "note": "Binary/encoded data; requires specialised detection" },
-      { "type": "PHOTOGRAPH", "description": "Full-face photographs",                  "svitch_detected": false, "note": "Image content; requires computer vision" }
+      { "type": "SSN_US",    "description": "Social Security Number",                 "governor_detected": true,  "examples": ["123-45-6789"] },
+      { "type": "MRN",       "description": "Medical Record Number (keyword-anchored)", "governor_detected": true,  "examples": ["P123456"] },
+      { "type": "NPI",       "description": "National Provider Identifier (Luhn-validated)", "governor_detected": true,  "examples": ["1234567893"] },
+      { "type": "US_PHONE",  "description": "US phone number",                         "governor_detected": true,  "examples": ["+1-800-555-1234"] },
+      { "type": "EMAIL",     "description": "Email address",                           "governor_detected": true,  "examples": ["patient@email.com"] },
+      { "type": "IPV4",      "description": "IPv4 address",                            "governor_detected": true,  "examples": ["192.168.1.1"] },
+      { "type": "CREDIT_CARD", "description": "Payment card (Luhn-validated)",         "governor_detected": true,  "examples": ["4532015112830366"] },
+      { "type": "US_ZIP",    "description": "US ZIP code (keyword-anchored)",           "governor_detected": true,  "examples": ["90210"] },
+      { "type": "NAME",      "description": "Patient full name",                       "governor_detected": false, "note": "NER model recommended; regex alone insufficient for names" },
+      { "type": "DATE_OF_BIRTH", "description": "DOB or dates related to individual", "governor_detected": false, "note": "Date patterns require context to distinguish PHI dates from other dates" },
+      { "type": "BIOMETRIC", "description": "Fingerprint, voice, retina data",        "governor_detected": false, "note": "Binary/encoded data; requires specialised detection" },
+      { "type": "PHOTOGRAPH", "description": "Full-face photographs",                  "governor_detected": false, "note": "Image content; requires computer vision" }
     ],
     "commonly_encountered_in_ai_prompts": [
       "SSN_US", "MRN", "NPI", "US_PHONE", "EMAIL", "IPV4", "CREDIT_CARD"
@@ -385,8 +385,8 @@
       "✓ Identify all PHI data flows through AI systems",
       "✓ Conduct risk analysis covering AI-specific threats (HIPAA-AI-009)",
       "✓ Sign BAAs with all LLM API vendors that will receive PHI (HIPAA-AI-002)",
-      "✓ Implement PHI de-identification: svitch.wrap(client, locale='us') (HIPAA-AI-001)",
-      "✓ Assign unique agent IDs to all AI agents: SvitchTracer(agent_id='...')",
+      "✓ Implement PHI de-identification: governor.wrap(client, locale='us') (HIPAA-AI-001)",
+      "✓ Assign unique agent IDs to all AI agents: GovernorTracer(agent_id='...')",
       "✓ Train all AI/ML team members on HIPAA obligations (HIPAA-AI-010)",
       "✓ Define minimum necessary PHI per agent purpose (HIPAA-AI-003)"
     ]},

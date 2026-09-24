@@ -1,25 +1,25 @@
 """
-LangChain / LangGraph integration for Svitch.
+LangChain / LangGraph integration for Governor.
 
-Provides SvitchCallbackHandler — a drop-in LangChain callback that:
+Provides GovernorCallbackHandler — a drop-in LangChain callback that:
   • auto-redacts PII from every prompt and response before logging
-  • records each LLM call, tool use, and agent decision to the Svitch
+  • records each LLM call, tool use, and agent decision to the Governor
     Agent Tracer audit trail
   • works with LangChain, LangGraph, CrewAI, and any other framework
     that accepts a BaseCallbackHandler
 
 Usage:
 
-    from svitch.langchain import SvitchCallbackHandler
+    from governor.langchain import GovernorCallbackHandler
     from langchain_openai import ChatOpenAI
 
-    handler = SvitchCallbackHandler(agent_id="loan-processor-v2")
+    handler = GovernorCallbackHandler(agent_id="loan-processor-v2")
     llm = ChatOpenAI(model="gpt-4o", callbacks=[handler])
 
     # or pass at invoke time (LangGraph style):
     graph.invoke(state, config={"callbacks": [handler]})
 
-Requires: pip install 'svitch[langchain]'
+Requires: pip install 'governor[langchain]'
 """
 
 from __future__ import annotations
@@ -32,15 +32,15 @@ try:
     from langchain_core.outputs import LLMResult
 except ImportError as _e:
     raise ImportError(
-        "langchain-core is required to use SvitchCallbackHandler.\n"
-        "Install it with:  pip install 'svitch[langchain]'"
+        "langchain-core is required to use GovernorCallbackHandler.\n"
+        "Install it with:  pip install 'governor[langchain]'"
     ) from _e
 
-from svitch_tracer import SvitchTracer, RunContext
+from governor_tracer import GovernorTracer, RunContext
 from .shield import redact as _redact
 
 
-class SvitchCallbackHandler(BaseCallbackHandler):
+class GovernorCallbackHandler(BaseCallbackHandler):
     """
     LangChain callback handler that writes a PII-scrubbed audit trail
     for every LLM call, tool use, and agent decision.
@@ -49,7 +49,7 @@ class SvitchCallbackHandler(BaseCallbackHandler):
         agent_id:     Identifier for this agent in the audit trail.
         auto_redact:  Auto-redact PII from prompts/responses before logging.
                       Default True. Set False only for debugging.
-        tracer:       Optional pre-configured SvitchTracer instance.
+        tracer:       Optional pre-configured GovernorTracer instance.
         api_url:      Override the Agent Tracer API URL.
     """
 
@@ -60,11 +60,11 @@ class SvitchCallbackHandler(BaseCallbackHandler):
         agent_id: str,
         *,
         auto_redact: bool = True,
-        tracer: Optional[SvitchTracer] = None,
+        tracer: Optional[GovernorTracer] = None,
         api_url: Optional[str] = None,
     ) -> None:
         super().__init__()
-        self._tracer = tracer or SvitchTracer(agent_id, api_url=api_url)
+        self._tracer = tracer or GovernorTracer(agent_id, api_url=api_url)
         self._auto_redact = auto_redact
 
         # Keyed by LangChain run_id (str)

@@ -5,7 +5,7 @@ The Reserve Bank of India's Framework for Responsible and Ethical Enablement
 of AI (FREE) contains 26 recommendations across 5 pillars. Applicable to all
 RBI-regulated entities (banks, NBFCs, payment operators) using AI systems.
 
-This generator populates the self-assessment checklist from Svitch telemetry
+This generator populates the self-assessment checklist from Governor telemetry
 and produces a report an RBI auditor can review directly.
 
 Reference: RBI Circular DOR.STR.REC.41/21.07.001/2024-25
@@ -20,7 +20,7 @@ from dataclasses import dataclass, asdict
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.join(ROOT, "agent-tracer"))
-os.environ.setdefault("SVITCH_DB_PATH", os.path.join(ROOT, "svitch_audit.db"))
+os.environ.setdefault("GOVERNOR_DB_PATH", os.path.join(ROOT, "governor_audit.db"))
 
 from .base import CheckItem, ReportMeta, BaseReport
 
@@ -85,7 +85,7 @@ RBI_FREE_PILLARS = {
 
 def _assess_from_telemetry(telemetry: dict) -> dict[str, str]:
     """
-    Map Svitch telemetry onto RBI FREE recommendation IDs.
+    Map Governor telemetry onto RBI FREE recommendation IDs.
     Returns {recommendation_id: status}.
     """
     has_audit    = telemetry.get("total_runs", 0) > 0
@@ -97,15 +97,15 @@ def _assess_from_telemetry(telemetry: dict) -> dict[str, str]:
         # Governance — requires manual inputs
         "G1": "not_assessed",
         "G2": "not_assessed",
-        "G3": "partial",    # Svitch audit log is the AI inventory basis
-        "G4": "partial",    # Svitch wraps third-party LLM calls with controls
+        "G3": "partial",    # Governor audit log is the AI inventory basis
+        "G4": "partial",    # Governor wraps third-party LLM calls with controls
         "G5": "not_assessed",
         "G6": "not_assessed",
         # Risk Management
         "R1": "partial",    # DPDP DPIA covers AI risk assessment
         "R2": "not_assessed",
         "R3": "compliant" if has_audit and chain_valid else "partial",
-        "R4": "partial",    # Svitch health endpoint; full monitoring not yet built
+        "R4": "partial",    # Governor health endpoint; full monitoring not yet built
         "R5": "partial",    # PII Shield scrubs data; bias screening not yet built
         "R6": "not_assessed",
         # Fairness
@@ -132,32 +132,32 @@ def _evidence(rec_id: str, telemetry: dict) -> tuple[str, str, str]:
     """Returns (evidence, gap, recommendation) for a given recommendation ID."""
     table = {
         "G3": (
-            "Svitch Agent Tracer catalogues all AI runs with agent_id, model, and data categories.",
-            "Formal AI inventory register not yet formalised outside Svitch.",
-            "Export Svitch agent_id list and risk-classify each system in a spreadsheet register.",
+            "Governor Agent Tracer catalogues all AI runs with agent_id, model, and data categories.",
+            "Formal AI inventory register not yet formalised outside Governor.",
+            "Export Governor agent_id list and risk-classify each system in a spreadsheet register.",
         ),
         "G4": (
-            "Svitch PII Shield enforces data controls on all third-party LLM calls (OpenAI, Anthropic, Gemini).",
+            "Governor PII Shield enforces data controls on all third-party LLM calls (OpenAI, Anthropic, Gemini).",
             "Formal vendor due diligence contracts not yet reviewed for AI-specific clauses.",
             "Add AI governance addendum to OpenAI/Anthropic contracts: data retention, subprocessor restrictions.",
         ),
         "R3": (
-            f"Svitch Agent Tracer: {telemetry.get('total_runs', 0)} runs, {telemetry.get('llm_calls', 0)} LLM calls recorded with SHA-256 Merkle chain.",
+            f"Governor Agent Tracer: {telemetry.get('total_runs', 0)} runs, {telemetry.get('llm_calls', 0)} LLM calls recorded with SHA-256 Merkle chain.",
             "",
             "",
         ),
         "R4": (
-            "Svitch /health endpoint provides runtime status.",
+            "Governor /health endpoint provides runtime status.",
             "No automated drift or accuracy monitoring implemented.",
-            "Integrate model performance metrics into Svitch dashboard (Phase 4 roadmap).",
+            "Integrate model performance metrics into Governor dashboard (Phase 4 roadmap).",
         ),
         "R5": (
-            "Svitch PII Shield screens all prompts before LLM processing — prevents personal data leakage in training data.",
+            "Governor PII Shield screens all prompts before LLM processing — prevents personal data leakage in training data.",
             "Bias screening of training datasets not implemented.",
             "Add bias audit to model evaluation pipeline before deployment.",
         ),
         "F2": (
-            f"Svitch Agent Tracer recorded {telemetry.get('human_checkpoints', 0)} human checkpoint events with reviewer_id and approval outcome.",
+            f"Governor Agent Tracer recorded {telemetry.get('human_checkpoints', 0)} human checkpoint events with reviewer_id and approval outcome.",
             "" if telemetry.get("human_checkpoints", 0) > 0 else "No human checkpoints recorded — high-value decisions may be fully automated.",
             "" if telemetry.get("human_checkpoints", 0) > 0 else "Implement run.human_checkpoint() for all loan / fraud decisions above risk threshold.",
         ),
@@ -177,12 +177,12 @@ def _evidence(rec_id: str, telemetry: dict) -> tuple[str, str, str]:
             "",
         ),
         "RS2": (
-            f"Svitch PII Shield blocked {telemetry.get('pii_events', 0)} PII events from reaching third-party LLMs in this period.",
+            f"Governor PII Shield blocked {telemetry.get('pii_events', 0)} PII events from reaching third-party LLMs in this period.",
             "",
             "",
         ),
         "RS3": (
-            "Svitch Enclave uses WireGuard VPN + API key authentication.",
+            "Governor Enclave uses WireGuard VPN + API key authentication.",
             "Rate limiting not yet implemented on the inference proxy.",
             "Add rate limiting middleware to private-enclave/inference/server.py.",
         ),
@@ -208,7 +208,7 @@ def generate(
         prepared_by: Name of person preparing the report
         period_start/end: Assessment period (YYYY-MM-DD)
         generated_at: ISO 8601 timestamp
-        run_ids: Svitch Agent Tracer run IDs to pull telemetry from
+        run_ids: Governor Agent Tracer run IDs to pull telemetry from
         manual_overrides: Dict of {recommendation_id: status} to override auto-assessment
     """
     telemetry = _pull_tracer_data(run_ids or [])
@@ -293,7 +293,7 @@ def _pull_tracer_data(run_ids: list[str]) -> dict:
     if not run_ids:
         return defaults
     try:
-        from svitch_tracer.storage.db import init_db, get_run, verify_chain
+        from governor_tracer.storage.db import init_db, get_run, verify_chain
         init_db()
         all_records, chain_valid = [], True
         for rid in run_ids:

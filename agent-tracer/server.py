@@ -1,5 +1,5 @@
 """
-Svitch Agent Tracer API
+Governor Agent Tracer API
 
 GET  /health                   — Service health
 GET  /runs                     — List recent runs (all agents or ?agent_id=)
@@ -21,17 +21,17 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ROOT)
 
 # Use /tmp on Vercel (read-only filesystem outside /tmp)
-os.environ.setdefault("SVITCH_DB_PATH", "/tmp/svitch_audit.db")
+os.environ.setdefault("GOVERNOR_DB_PATH", "/tmp/governor_audit.db")
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
 
-from svitch_tracer.storage import db as store
+from governor_tracer.storage import db as store
 
 app = FastAPI(
-    title="Svitch Agent Tracer",
+    title="Governor Agent Tracer",
     description="Hash-chained audit log for AI agent decisions.",
     version="0.1.0",
 )

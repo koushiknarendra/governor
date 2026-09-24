@@ -3,7 +3,7 @@ import Link from "next/link";
 import Logo from "../components/Logo";
 
 export const metadata: Metadata = {
-  title: "DPDP for AI Developers — Svitch",
+  title: "DPDP for AI Developers — Governor",
   description:
     "The complete technical guide to building DPDP-compliant AI systems in India. Every Section mapped to code.",
 };
@@ -161,7 +161,7 @@ export default function DPDPGuidePage() {
           ))}
 
           <div style={{ marginTop: 28, padding: "16px", background: "#F5F5F3", borderRadius: 10 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: "#0D0D0B", marginBottom: 8 }}>Svitch automates this</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: "#0D0D0B", marginBottom: 8 }}>Governor automates this</div>
             <div style={{ fontSize: 12, color: "#71716B", lineHeight: 1.6, marginBottom: 12 }}>PII redaction, consent ledger, audit trail, and DPIA generation — out of the box.</div>
             <Link href="/dashboard" style={{
               display: "block", textAlign: "center", padding: "7px 0",
@@ -273,7 +273,7 @@ export default function DPDPGuidePage() {
             any other personal data, you must have a recorded consent for that specific purpose.
             Consent for "loan processing" does not cover using the same data for "marketing."
           </P>
-          <CodeBlock lang="python">{`from svitch_tracer import SvitchTracer
+          <CodeBlock lang="python">{`from governor_tracer import GovernorTracer
 
 # WRONG — no consent check before processing
 def process_loan(customer_id, aadhaar, pan):
@@ -288,7 +288,7 @@ def process_loan(customer_id, aadhaar, pan):
         raise PermissionError(f"Cannot process: {reason}")
 
     # Now safe to proceed — consent is verified
-    tracer = SvitchTracer(agent_id="loan-processor")
+    tracer = GovernorTracer(agent_id="loan-processor")
     with tracer.run() as run:
         run.data_access(
             source="customer_profile",
@@ -304,7 +304,7 @@ def process_loan(customer_id, aadhaar, pan):
             recorded — but the original grant record must also be preserved as proof it existed.
           </P>
           <Callout type="info">
-            Svitch's <strong>Consent Ledger</strong> uses an append-only, hash-chained record design:
+            Governor's <strong>Consent Ledger</strong> uses an append-only, hash-chained record design:
             withdrawals are new records linked to the original — so you can prove both that consent
             existed and that it was withdrawn, without either record being mutable.{" "}
             <Link href="/dashboard/consent" style={{ color: "#1C6EF2" }}>Try it →</Link>
@@ -392,7 +392,7 @@ Requested amount: {loan_amount}
             whenever the processing changes significantly.
           </P>
           <Callout type="info">
-            Svitch's <strong>Compliance Engine</strong> auto-generates a DPDP DPIA by pulling your
+            Governor's <strong>Compliance Engine</strong> auto-generates a DPDP DPIA by pulling your
             actual processing activities from the Agent Tracer — no manual questionnaire filling.
             A compliant report in under 10 minutes.{" "}
             <Link href="/dashboard/reports" style={{ color: "#1C6EF2" }}>Generate a DPIA →</Link>
@@ -406,12 +406,12 @@ Requested amount: {loan_amount}
             UPI IDs follow a <Code>handle@provider</Code> format. IFSC codes are 11-character bank
             identifiers. Indian mobile numbers range from 6xxx to 9xxx with regional variance.
           </P>
-          <CodeBlock lang="python">{`# Install: pip install svitch
-from svitch import Svitch
+          <CodeBlock lang="python">{`# Install: pip install pygovernor
+from governor import Governor
 from openai import OpenAI
 
 # One line — wraps any LLM provider
-client = Svitch.wrap(OpenAI())
+client = Governor.wrap(OpenAI())
 
 # PII is automatically detected and redacted before
 # the prompt reaches OpenAI's servers
@@ -516,9 +516,9 @@ requests.post(f"{LEDGER}/consent/{consent_id}/withdraw")
             any step, across multiple tools, without the developer being explicitly aware. The
             audit trail must be automatic, not opt-in.
           </P>
-          <CodeBlock lang="python">{`from svitch_tracer import SvitchTracer
+          <CodeBlock lang="python">{`from governor_tracer import GovernorTracer
 
-tracer = SvitchTracer(agent_id="fraud-detector-v2")
+tracer = GovernorTracer(agent_id="fraud-detector-v2")
 
 with tracer.run() as run:
     # Every call is hash-chained and tamper-evident
@@ -562,7 +562,7 @@ assert valid, f"Audit chain compromised: {err}"`}</CodeBlock>
           {/* ── Implementation: DPIA ── */}
           <H2 id="impl-dpia">Implementation: Automated DPIA Generation</H2>
           <P>
-            A manual DPIA typically takes 6–10 weeks of legal and compliance work. Svitch generates
+            A manual DPIA typically takes 6–10 weeks of legal and compliance work. Governor generates
             a compliant DPDP DPIA in under 10 minutes by reading your actual processing telemetry
             and populating the required 7 sections automatically.
           </P>
@@ -695,7 +695,7 @@ print(f"HTML:      {COMPLIANCE}/report/{report['report_id']}/html")`}</CodeBlock
                 background: "#1C6EF2", color: "white", textDecoration: "none",
                 fontSize: 14, fontWeight: 600, textAlign: "center", whiteSpace: "nowrap",
               }}>Open Dashboard →</Link>
-              <a href="https://github.com/koushiknarendra/svitch" target="_blank" rel="noreferrer" style={{
+              <a href="https://github.com/koushiknarendra/governor" target="_blank" rel="noreferrer" style={{
                 display: "block", padding: "9px 24px", borderRadius: 8,
                 background: "rgba(255,255,255,0.08)", color: "#A8A8A2", textDecoration: "none",
                 fontSize: 14, fontWeight: 500, textAlign: "center", border: "1px solid rgba(255,255,255,0.1)",

@@ -1,7 +1,7 @@
-# Project Plan: Svitch (Autonomous Compliance Engine)
+# Project Plan: Governor (Autonomous Compliance Engine)
 
 ## 1. Executive Summary
-**Svitch** is a "Compliance-First" AI Gateway and Orchestration layer. Unlike general-purpose AI routers or agent frameworks, Svitch focuses on **Governance, Compliance (DPDP/POSH), and Auditability** for enterprise AI agents operating in regulated markets (primarily India).
+**Governor** is a "Compliance-First" AI Gateway and Orchestration layer. Unlike general-purpose AI routers or agent frameworks, Governor focuses on **Governance, Compliance (DPDP/POSH), and Auditability** for enterprise AI agents operating in regulated markets (primarily India).
 
 ## 2. Core Value Proposition
 * **Compliance-as-Code:** Automatically validate agent outputs against DPDP (Digital Personal Data Protection) and POSH regulations.
@@ -40,7 +40,7 @@
 | **Week 7+** | Enterprise Beta | Dashboard + Legal/HR UI |
 
 ## 5. Strategic Differentiation
-| Competitor | Focus | Svitch Focus |
+| Competitor | Focus | Governor Focus |
 | :--- | :--- | :--- |
 | **OpenRouter** | General API Access | **Compliance/Regulatory** |
 | **Supergent** | Knowledge Layers | **Policy/Audit Layers** |

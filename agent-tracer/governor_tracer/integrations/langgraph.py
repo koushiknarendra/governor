@@ -1,15 +1,15 @@
 """
-LangGraph integration for Svitch.
+LangGraph integration for Governor.
 
 Wraps a compiled LangGraph graph so every node execution, LLM call,
-and tool call is automatically recorded to the Svitch audit log.
+and tool call is automatically recorded to the Governor audit log.
 
 Usage:
     from langgraph.graph import StateGraph
-    from svitch_tracer import SvitchTracer
-    from svitch_tracer.integrations.langgraph import traced
+    from governor_tracer import GovernorTracer
+    from governor_tracer.integrations.langgraph import traced
 
-    tracer = SvitchTracer(agent_id="loan-processor-v1")
+    tracer = GovernorTracer(agent_id="loan-processor-v1")
     graph = StateGraph(...).compile()
     traced_graph = traced(graph, tracer)
 
@@ -21,7 +21,7 @@ import uuid
 from typing import Any, Optional
 
 
-def traced(graph: Any, tracer: "SvitchTracer", run_id: Optional[str] = None) -> "TracedGraph":
+def traced(graph: Any, tracer: "GovernorTracer", run_id: Optional[str] = None) -> "TracedGraph":
     return TracedGraph(graph=graph, tracer=tracer, run_id=run_id)
 
 
@@ -45,8 +45,8 @@ class TracedGraph:
             # Patch callbacks to intercept LLM and tool calls
             config = config or {}
             callbacks = config.get("callbacks", [])
-            svitch_cb = _SvitchCallback(run)
-            config = {**config, "callbacks": callbacks + [svitch_cb]}
+            governor_cb = _GovernorCallback(run)
+            config = {**config, "callbacks": callbacks + [governor_cb]}
 
             try:
                 result = self._graph.invoke(input, config=config, **kwargs)
@@ -76,8 +76,8 @@ class TracedGraph:
 
             config = config or {}
             callbacks = config.get("callbacks", [])
-            svitch_cb = _SvitchCallback(run)
-            config = {**config, "callbacks": callbacks + [svitch_cb]}
+            governor_cb = _GovernorCallback(run)
+            config = {**config, "callbacks": callbacks + [governor_cb]}
 
             try:
                 result = await self._graph.ainvoke(input, config=config, **kwargs)
@@ -91,10 +91,10 @@ class TracedGraph:
         return getattr(self._graph, name)
 
 
-class _SvitchCallback:
+class _GovernorCallback:
     """
     LangChain/LangGraph callback handler that records LLM and tool events
-    to the Svitch audit log.
+    to the Governor audit log.
     """
 
     def __init__(self, run_context):

@@ -1,7 +1,7 @@
 {
-  "name": "svitch-consent-chaincode",
+  "name": "governor-consent-chaincode",
   "version": "1.0.0",
-  "description": "Svitch consent ledger chaincode for Hyperledger Fabric",
+  "description": "Governor consent ledger chaincode for Hyperledger Fabric",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",

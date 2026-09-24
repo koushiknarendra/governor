@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Svitch — Privacy-First AI Infrastructure",
+  title: "Governor — Privacy-First AI Infrastructure",
   description:
     "Keep personal data private in every AI call. PII redaction, agent audit trails, consent management, and compliance reports — for teams building AI on sensitive data.",
   icons: {

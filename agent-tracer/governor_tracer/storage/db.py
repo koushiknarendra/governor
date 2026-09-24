@@ -50,7 +50,7 @@ def _hash_record(record: AuditRecord) -> str:
     return hashlib.sha256(json.dumps(canonical, sort_keys=True).encode()).hexdigest()
 
 
-_DB_PATH = os.environ.get("SVITCH_DB_PATH", "svitch_audit.db")
+_DB_PATH = os.environ.get("GOVERNOR_DB_PATH", "governor_audit.db")
 _DATABASE_URL = os.environ.get("DATABASE_URL")
 
 # Singleton connection for :memory: — required because each sqlite3.connect(":memory:")

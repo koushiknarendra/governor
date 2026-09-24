@@ -5,22 +5,22 @@ version: "3.9"
 
 services:
 
-  # ── Svitch Inference Server ───────────────────────────────────────────────
+  # ── Governor Inference Server ───────────────────────────────────────────────
   # OpenAI-compatible proxy with PII Shield + Agent Tracer baked in.
   # In prod, VLLM_BASE_URL points to the real vLLM container on the GPU server.
-  svitch-inference:
+  governor-inference:
     build:
       context: ..
       dockerfile: private-enclave/inference/Dockerfile
     environment:
       - VLLM_BASE_URL=http://mock-llm:8000
       - DEFAULT_MODEL=llama-3.1-8b-instruct
-      - ENCLAVE_ID=svitch-dev-enclave
+      - ENCLAVE_ID=governor-dev-enclave
       - PII_MODE=redact
       - TRACER_ENABLED=true
-      - SVITCH_DB_PATH=/data/audit.db
+      - GOVERNOR_DB_PATH=/data/audit.db
     volumes:
-      - svitch-audit:/data
+      - governor-audit:/data
     ports:
       - "8080:8080"
     depends_on:
@@ -80,4 +80,4 @@ uvicorn.run(app, host='0.0.0.0', port=8000)
       retries: 10
 
 volumes:
-  svitch-audit:
+  governor-audit:

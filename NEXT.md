@@ -1,25 +1,25 @@
-# Svitch — Next Steps
+# Governor — Next Steps
 
 Last updated: 2026-09-17
 
 ## State of the build
 
 Code is done and merged through v0.1.4 (tag pushed Aug 3). The landing page, dashboard,
-and guide pages are live at svitch.ai. **But nothing has ever actually reached PyPI or
-npm** — `pip install svitch` and `npm install svitch-sdk` didn't do anything until today's
+and guide pages are live at governor.so. **But nothing has ever actually reached PyPI or
+npm** — `pip install pygovernor` and `npm install governor-sdk` didn't do anything until today's
 fixes. If you read the README/landing page badges as proof the SDKs were live, they
 weren't; this file replaces the stale June 19 version that claimed otherwise.
 
 **What's complete:**
-- Python SDK (`pip install svitch`) — PII detection (Aadhaar, PAN, UPI, IFSC, Mobile, GST, Bank Account, Voter ID, Passport, DL, IBAN, UK NIN, SSN, MRN, Email, Credit Card)
-- Node.js SDK (`npm install svitch-sdk`) — same patterns, TypeScript-first
-- `svitch.wrap(client, tracer=tracer)` — PII redaction + audit trail in one call
+- Python SDK (`pip install pygovernor`) — PII detection (Aadhaar, PAN, UPI, IFSC, Mobile, GST, Bank Account, Voter ID, Passport, DL, IBAN, UK NIN, SSN, MRN, Email, Credit Card)
+- Node.js SDK (`npm install governor-sdk`) — same patterns, TypeScript-first
+- `governor.wrap(client, tracer=tracer)` — PII redaction + audit trail in one call
 - Async-native Python tracer — `async with tracer.arun() as run:` for FastAPI agents
 - Compliance specs — `spec/dpdp-ai-v1.json`, `spec/gdpr-ai-v1.json`, `spec/hipaa-ai-v1.json`
-- Landing page — svitch.ai with DPDP/GDPR/HIPAA framework cards (confirmed live, 200 OK)
-- Guide pages — svitch.ai/dpdp, svitch.ai/gdpr, svitch.ai/hipaa
+- Landing page — governor.so with DPDP/GDPR/HIPAA framework cards (confirmed live, 200 OK)
+- Guide pages — governor.so/dpdp, governor.so/gdpr, governor.so/hipaa
 - Dashboard — 6 pages: Overview (multi-framework), PII Shield, Agent Tracer, Consent Ledger, Reports, Integrate
-- Repo is public: github.com/koushiknarendra/svitch (0 stars — no outbound push has happened yet)
+- Repo is public: github.com/koushiknarendra/governor (0 stars — no outbound push has happened yet)
 - GitHub Actions CI/CD — `ci.yml` (8 jobs, Python 3.10+3.12, Node 20+22) + `publish.yml` (CI gate → PyPI OIDC → npm → GitHub Release)
 
 ## What was actually broken (found + partly fixed 2026-09-17)
@@ -27,12 +27,12 @@ weren't; this file replaces the stale June 19 version that claimed otherwise.
 1. **`publish.yml` never ran.** It called `ci.yml` as a reusable workflow (`uses: ./.github/workflows/ci.yml`),
    but `ci.yml` had no `workflow_call` trigger, so every publish attempt (including the `v0.1.4` tag push on
    Aug 3) failed instantly with 0 jobs executed. **Fixed** — `workflow_call:` added to `ci.yml`'s `on:` block.
-2. **npm name collision.** `svitch` on npm belongs to an unrelated, abandoned package (`svitch@0.0.1`, last
+2. **npm name collision.** `governor` on npm belongs to an unrelated, abandoned package (`governor@0.0.1`, last
    published 2022, different owner) — `npm publish` would 403 forever. **Fixed** — Node SDK renamed to
-   `svitch-sdk` in `sdk/node/package.json`, and every doc/landing-page code sample updated to match
+   `governor-sdk` in `sdk/node/package.json`, and every doc/landing-page code sample updated to match
    (`README.md`, `CONTRIBUTING.md`, `web/app/{gdpr,hipaa}/page.tsx`, `web/app/dashboard/integrate/page.tsx`).
-   PyPI name `svitch` is still free — Python SDK keeps its name.
-3. **PyPI trusted publisher was never configured.** `pypi.org/pypi/svitch/json` returns 404 — the package has
+   PyPI name `governor` is still free — Python SDK keeps its name.
+3. **PyPI trusted publisher was never configured.** `pypi.org/pypi/pygovernor/json` returns 404 — the package has
    literally never been published. Still needs the manual step below.
 4. **`NPM_TOKEN` secret was never set** (or never existed) — `publish-npm` job would fail on auth even once
    `publish.yml` runs. Still needs the manual step below.
@@ -41,8 +41,8 @@ weren't; this file replaces the stale June 19 version that claimed otherwise.
 
 ### 1. PyPI trusted publishing (one-time)
 - pypi.org → Account Settings → Publishing → Add a new pending publisher
-  - PyPI project name: `svitch`
-  - Owner: `koushiknarendra`, Repo: `svitch`, Workflow: `publish.yml`, Environment: `release`
+  - PyPI project name: `governor`
+  - Owner: `koushiknarendra`, Repo: `governor`, Workflow: `publish.yml`, Environment: `release`
 - GitHub repo → Settings → Environments → New environment → name it exactly `release`
   (I tried to create this via `gh api` but my token doesn't have admin rights on the repo — 403)
 
@@ -56,12 +56,12 @@ npm token create --type=automation
 
 ### 3. Cut the real release once 1 and 2 are done
 ```bash
-cd /Users/gk/Desktop/Projects/K/Svitch
+cd /Users/gk/Desktop/Projects/K/Governor
 git tag v0.1.5
 git push origin v0.1.5
 ```
-Watch `gh run watch` on the `Publish` workflow. If it goes green, `pip install svitch` and
-`npm install svitch-sdk` will work for real for the first time.
+Watch `gh run watch` on the `Publish` workflow. If it goes green, `pip install pygovernor` and
+`npm install governor-sdk` will work for real for the first time.
 
 ### 4. Promote landing page to production (if any pending changes)
 ```bash
@@ -102,4 +102,4 @@ Submit `spec/dpdp-ai-v1.json` to:
 - IndiaAI Mission — https://indiaai.gov.in/public-consultation
 - DSCI — contact@dsci.in
 
-This is the "standard-setting" move that separates Svitch from a library to an authority. Do it once the repo has some stars — publishing broken installs first would undercut it.
+This is the "standard-setting" move that separates Governor from a library to an authority. Do it once the repo has some stars — publishing broken installs first would undercut it.

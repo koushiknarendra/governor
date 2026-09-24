@@ -63,12 +63,12 @@ function Step({ n, title, sub, children }: { n: number; title: string; sub: stri
 }
 
 const PYTHON_STEPS = {
-  install: `pip install svitch`,
-  wrap: `import svitch
+  install: `pip install pygovernor`,
+  wrap: `import governor
 import openai
 
 # Drop-in replacement — PII is redacted before prompts leave your code
-client = svitch.wrap(openai.OpenAI())
+client = governor.wrap(openai.OpenAI())
 
 response = client.chat.completions.create(
     model="gpt-4o",
@@ -78,14 +78,14 @@ response = client.chat.completions.create(
 )
 # "Aadhaar 9876 5432 1098" → "[AADHAAR_IN]"
 # "PAN ABCDE1234F" → "[PAN_IN]"`,
-  tracer: `import svitch
+  tracer: `import governor
 import openai
-from svitch_tracer import SvitchTracer
+from governor_tracer import GovernorTracer
 
-tracer = SvitchTracer(agent_id="loan-processor-v2")
+tracer = GovernorTracer(agent_id="loan-processor-v2")
 
 # PII redaction + hash-chained audit trail in one call
-client = svitch.wrap(openai.OpenAI(), tracer=tracer)
+client = governor.wrap(openai.OpenAI(), tracer=tracer)
 
 # FastAPI / asyncio agents — use arun() instead
 # async with tracer.arun() as run:
@@ -109,9 +109,9 @@ print(valid, err)   # True, "chain intact"`,
 };
 
 const NODE_STEPS = {
-  install: `npm install svitch-sdk`,
+  install: `npm install governor-sdk`,
   wrap: `import OpenAI from 'openai';
-import { wrap } from 'svitch-sdk';
+import { wrap } from 'governor-sdk';
 
 // Drop-in replacement — PII is redacted before prompts leave your code
 const client = wrap(new OpenAI());
@@ -124,9 +124,9 @@ const response = await client.chat.completions.create({
 });
 // "Aadhaar 9876 5432 1098" → "[AADHAAR_IN]"`,
   tracer: `import OpenAI from 'openai';
-import { wrap, SvitchTracer } from 'svitch-sdk';
+import { wrap, GovernorTracer } from 'governor-sdk';
 
-const tracer = new SvitchTracer('loan-processor-v2');
+const tracer = new GovernorTracer('loan-processor-v2');
 
 // PII redaction + hash-chained audit trail in one call
 const client = wrap(new OpenAI(), { locale: 'in', tracer });
@@ -187,14 +187,14 @@ export default function IntegratePage() {
         ))}
         <div style={{ marginLeft: "auto", display: "flex", gap: 10, alignItems: "center" }}>
           <a
-            href={lang === "python" ? "https://pypi.org/project/svitch/" : "https://www.npmjs.com/package/svitch"}
+            href={lang === "python" ? "https://pypi.org/project/pygovernor/" : "https://www.npmjs.com/package/governor-sdk"}
             target="_blank" rel="noreferrer"
             style={{ fontSize: 12, color: "#71716B", textDecoration: "none" }}
           >
             {lang === "python" ? "PyPI →" : "npm →"}
           </a>
           <a
-            href="https://github.com/koushiknarendra/svitch"
+            href="https://github.com/koushiknarendra/governor"
             target="_blank" rel="noreferrer"
             style={{ fontSize: 12, color: "#71716B", textDecoration: "none" }}
           >

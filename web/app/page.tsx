@@ -18,7 +18,7 @@ const CODE_TABS = [
     id: "shield",
     label: "Shield",
     copyText: [
-      "from svitch import redact",
+      "from governor import redact",
       "",
       'result = redact(',
       '    "Aadhaar 2345 6789 0123 · IBAN GB29NWBK60161331926819 · SSN 123-45-6789"',
@@ -29,7 +29,7 @@ const CODE_TABS = [
       "# Zero network — runs locally, no data sent anywhere",
     ].join("\n"),
     lines: [
-      [{ c: ACCENT, t: "from" }, { t: " svitch " }, { c: ACCENT, t: "import" }, { t: " redact" }],
+      [{ c: ACCENT, t: "from" }, { t: " governor " }, { c: ACCENT, t: "import" }, { t: " redact" }],
       [{ t: " " }],
       [{ t: "result = redact(" }],
       [{ t: '    ' }, { c: "#5C9E5F", t: '"Aadhaar 2345 6789 0123 · IBAN GB29NWBK60161331926819 · SSN 123-45-6789"' }],
@@ -44,9 +44,9 @@ const CODE_TABS = [
     id: "router",
     label: "Router",
     copyText: [
-      "import svitch, openai, anthropic",
+      "import governor, openai, anthropic",
       "",
-      "router = svitch.Router()",
+      "router = governor.Router()",
       'router.add("openai",    openai.OpenAI())',
       'router.add("anthropic", anthropic.Anthropic())',
       "",
@@ -56,9 +56,9 @@ const CODE_TABS = [
       "# → 'anthropic'  'complex'",
     ].join("\n"),
     lines: [
-      [{ c: ACCENT, t: "import" }, { t: " svitch, openai, anthropic" }],
+      [{ c: ACCENT, t: "import" }, { t: " governor, openai, anthropic" }],
       [{ t: " " }],
-      [{ t: "router = svitch.Router()" }],
+      [{ t: "router = governor.Router()" }],
       [{ t: 'router.add(' }, { c: "#5C9E5F", t: '"openai"' }, { t: ",    openai.OpenAI())" }],
       [{ t: 'router.add(' }, { c: "#5C9E5F", t: '"anthropic"' }, { t: ", anthropic.Anthropic())" }],
       [{ t: " " }],
@@ -72,10 +72,10 @@ const CODE_TABS = [
     id: "langchain",
     label: "LangChain",
     copyText: [
-      "from svitch.langchain import SvitchCallbackHandler",
+      "from governor.langchain import GovernorCallbackHandler",
       "from langchain_openai import ChatOpenAI",
       "",
-      "handler = SvitchCallbackHandler(agent_id='loan-processor')",
+      "handler = GovernorCallbackHandler(agent_id='loan-processor')",
       "llm = ChatOpenAI(model='gpt-4o', callbacks=[handler])",
       "",
       "# PII redacted → audit trail recorded → model called",
@@ -84,10 +84,10 @@ const CODE_TABS = [
       "# LangGraph: graph.invoke(state, config={'callbacks': [handler]})",
     ].join("\n"),
     lines: [
-      [{ c: ACCENT, t: "from" }, { t: " svitch.langchain " }, { c: ACCENT, t: "import" }, { t: " SvitchCallbackHandler" }],
+      [{ c: ACCENT, t: "from" }, { t: " governor.langchain " }, { c: ACCENT, t: "import" }, { t: " GovernorCallbackHandler" }],
       [{ c: ACCENT, t: "from" }, { t: " langchain_openai " }, { c: ACCENT, t: "import" }, { t: " ChatOpenAI" }],
       [{ t: " " }],
-      [{ t: "handler = SvitchCallbackHandler(agent_id=" }, { c: "#5C9E5F", t: "'loan-processor'" }, { t: ")" }],
+      [{ t: "handler = GovernorCallbackHandler(agent_id=" }, { c: "#5C9E5F", t: "'loan-processor'" }, { t: ")" }],
       [{ t: "llm = ChatOpenAI(model=" }, { c: "#5C9E5F", t: "'gpt-4o'" }, { t: ", callbacks=[handler])" }],
       [{ t: " " }],
       [{ c: "#9A9A92", t: "# PII redacted → audit trail recorded → model called" }],
@@ -163,7 +163,7 @@ function HeroTerminal({ step }: { step: number }) {
     <span style={{ borderBottom: `1px solid ${ACCENT}`, background: ACCENT_BG }}>{children}</span>
   );
   const lines: ReactNode[] = [
-    <div key={0}><span style={{ color: "#9A9A92" }}>$ </span>svitch shield scan prompt</div>,
+    <div key={0}><span style={{ color: "#9A9A92" }}>$ </span>governor shield scan prompt</div>,
     <div key={1} style={{ color: ACCENT }}>✓ scanning · India · EU · US</div>,
     <div key={2} style={{ height: 10 }} />,
     <div key={3} style={{ color: "#9A9A92" }}>→ 5 entities found</div>,
@@ -339,7 +339,7 @@ export default function Home() {
             <a href="/dpdp"   style={{ color: "#71716B" }}>DPDP</a>
             <a href="/gdpr"   style={{ color: "#71716B" }}>GDPR</a>
             <a href="/hipaa"  style={{ color: "#71716B" }}>HIPAA</a>
-            <a href="https://github.com/koushiknarendra/svitch" target="_blank" style={{ color: "#71716B" }}>GitHub</a>
+            <a href="https://github.com/koushiknarendra/governor" target="_blank" style={{ color: "#71716B" }}>GitHub</a>
           </div>
 
           <a href="/dashboard" className="r-nav-cta" style={{ fontFamily: MONO, fontSize: 13, color: ACCENT, whiteSpace: "nowrap" }}>
@@ -358,7 +358,7 @@ export default function Home() {
             <div className="r-hero-grid">
               <div>
                 <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "#71716B", marginBottom: 24 }}>
-                  Svitch · the AI control layer
+                  Governor · the AI control layer
                 </div>
                 <h1 className="r-hero-h1">
                   Your AI stack.<br />Your data.<br /><span style={{ color: ACCENT }}>Always.</span>
@@ -368,7 +368,7 @@ export default function Home() {
                 </p>
                 <div style={{ display: "flex", alignItems: "center", gap: 28, flexWrap: "wrap" }}>
                   <a href="#demo" style={{ fontFamily: MONO, fontSize: 14, color: ACCENT }}>Get early access&nbsp;→</a>
-                  <a href="https://github.com/koushiknarendra/svitch" target="_blank" style={{ fontFamily: MONO, fontSize: 14, color: "#71716B" }}>View on GitHub</a>
+                  <a href="https://github.com/koushiknarendra/governor" target="_blank" style={{ fontFamily: MONO, fontSize: 14, color: "#71716B" }}>View on GitHub</a>
                 </div>
               </div>
 
@@ -378,7 +378,7 @@ export default function Home() {
                   <span style={{ width: 9, height: 9, borderRadius: "50%", background: "#D8D8D2", display: "inline-block" }} />
                   <span style={{ width: 9, height: 9, borderRadius: "50%", background: "#D8D8D2", display: "inline-block" }} />
                   <span style={{ width: 9, height: 9, borderRadius: "50%", background: "#D8D8D2", display: "inline-block" }} />
-                  <span style={{ fontFamily: MONO, fontSize: 11, color: "#9A9A92", marginLeft: 8 }}>svitch — shield</span>
+                  <span style={{ fontFamily: MONO, fontSize: 11, color: "#9A9A92", marginLeft: 8 }}>governor — shield</span>
                 </div>
                 <div style={{ padding: "20px 18px", minHeight: 200 }}>
                   <HeroTerminal step={heroStep} />
@@ -426,7 +426,7 @@ export default function Home() {
           </h2>
           <div className="r-grid-3">
             {[
-              { num: "[01]", title: "Wrap",   desc: <p style={{ fontSize: 15, lineHeight: 1.6, color: "#71716B", margin: 0 }}>Wrap any client — <span style={{ fontFamily: CODE_FONT, fontSize: 13, color: "#0D0D0B" }}>svitch.wrap(openai.client)</span>. Context and tools carry across every model.</p> },
+              { num: "[01]", title: "Wrap",   desc: <p style={{ fontSize: 15, lineHeight: 1.6, color: "#71716B", margin: 0 }}>Wrap any client — <span style={{ fontFamily: CODE_FONT, fontSize: 13, color: "#0D0D0B" }}>governor.wrap(openai.client)</span>. Context and tools carry across every model.</p> },
               { num: "[02]", title: "Shield", desc: <p style={{ fontSize: 15, lineHeight: 1.6, color: "#71716B", margin: 0 }}>PII is detected and redacted before the prompt ever leaves your codebase. Aadhaar, PAN, UPI, GDPR entities, and more — on by default.</p> },
               { num: "[03]", title: "Route",  desc: <p style={{ fontSize: 15, lineHeight: 1.6, color: "#71716B", margin: 0 }}>Each query is complexity-scored. Routine work is auto-routed to a cheaper model — up to 80% off.</p> },
             ].map(({ num, title, desc }) => (
@@ -452,7 +452,7 @@ export default function Home() {
         <div className="r-section">
           <div className="r-grid-demo">
             <div className="r-sticky">
-              <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.1em", color: "#71716B", marginBottom: 18 }}>SVITCH SHIELD · LIVE DEMO</div>
+              <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.1em", color: "#71716B", marginBottom: 18 }}>GOVERNOR SHIELD · LIVE DEMO</div>
               <h2 className="r-h2-demo">
                 Paste any text. Watch PII <span style={{ color: ACCENT }}>disappear.</span>
               </h2>
@@ -519,7 +519,7 @@ export default function Home() {
                 One import.<br />Three <span style={{ color: ACCENT }}>superpowers.</span>
               </h2>
               <p style={{ fontSize: 16, lineHeight: 1.65, color: "#71716B", margin: "0 0 18px" }}>
-                Drop Svitch in front of the SDK you already use. No prompt rewrites, no proxy config, no new mental model.
+                Drop Governor in front of the SDK you already use. No prompt rewrites, no proxy config, no new mental model.
               </p>
               <p style={{ fontFamily: MONO, fontSize: 12, lineHeight: 2, color: "#71716B", margin: 0 }}>
                 OpenAI · Anthropic · Gemini · Llama<br />LangChain · LangGraph · CrewAI
@@ -559,7 +559,7 @@ export default function Home() {
       {/* ── PRODUCTS ── */}
       <section style={{ background: "#FAFAF8" }}>
         <div className="r-products-hd">
-          <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.12em", color: "#71716B" }}>WHAT&apos;S INSIDE SVITCH</div>
+          <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.12em", color: "#71716B" }}>WHAT&apos;S INSIDE GOVERNOR</div>
         </div>
 
         {/* SHIELD */}
@@ -567,7 +567,7 @@ export default function Home() {
           <div className="r-grid-2">
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
-                <span style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "0.08em", color: "#0D0D0B" }}>SVITCH SHIELD</span>
+                <span style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "0.08em", color: "#0D0D0B" }}>GOVERNOR SHIELD</span>
                 <span style={{ fontFamily: MONO, fontSize: 11, color: ACCENT }}>● LIVE</span>
               </div>
               <h3 style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.02em", margin: "0 0 12px" }}>PII redaction before the prompt</h3>
@@ -602,11 +602,11 @@ export default function Home() {
             </div>
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
-                <span style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "0.08em", color: "#0D0D0B" }}>SVITCH ROUTER</span>
+                <span style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "0.08em", color: "#0D0D0B" }}>GOVERNOR ROUTER</span>
                 <span style={{ fontFamily: MONO, fontSize: 11, color: ACCENT }}>● LIVE</span>
               </div>
               <h3 style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.02em", margin: "0 0 12px" }}>The right model for every query</h3>
-              <p style={{ fontSize: 15, lineHeight: 1.65, color: "#71716B", margin: 0 }}>Routine queries score low and route to cheap models; hard ones escalate. You set the ceiling, Svitch spends under it — cutting model cost up to 80%.</p>
+              <p style={{ fontSize: 15, lineHeight: 1.65, color: "#71716B", margin: 0 }}>Routine queries score low and route to cheap models; hard ones escalate. You set the ceiling, Governor spends under it — cutting model cost up to 80%.</p>
             </div>
           </div>
         </div>
@@ -616,7 +616,7 @@ export default function Home() {
           <div className="r-grid-2">
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
-                <span style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "0.08em", color: "#0D0D0B" }}>SVITCH TRACER</span>
+                <span style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "0.08em", color: "#0D0D0B" }}>GOVERNOR TRACER</span>
                 <span style={{ fontFamily: MONO, fontSize: 11, color: ACCENT }}>● LIVE</span>
               </div>
               <h3 style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.02em", margin: "0 0 12px" }}>A tamper-proof record of every decision</h3>
@@ -652,7 +652,7 @@ export default function Home() {
             </div>
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
-                <span style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "0.08em", color: "#0D0D0B" }}>SVITCH ENCLAVE</span>
+                <span style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "0.08em", color: "#0D0D0B" }}>GOVERNOR ENCLAVE</span>
                 <span style={{ fontFamily: MONO, fontSize: 11, color: "#71716B" }}>○ COMING SOON</span>
               </div>
               <h3 style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.02em", margin: "0 0 12px" }}>Inference that never leaves your perimeter</h3>
@@ -666,7 +666,7 @@ export default function Home() {
           <div className="r-grid-2">
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
-                <span style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "0.08em", color: "#0D0D0B" }}>SVITCH LEDGER</span>
+                <span style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "0.08em", color: "#0D0D0B" }}>GOVERNOR LEDGER</span>
                 <span style={{ fontFamily: MONO, fontSize: 11, color: "#71716B" }}>○ COMING SOON</span>
               </div>
               <h3 style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.02em", margin: "0 0 12px" }}>Consent, recorded on a shared ledger</h3>
@@ -723,7 +723,7 @@ export default function Home() {
                 </div>
                 <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4 }}>
                   <span style={{ fontSize: 11, fontFamily: MONO, color: "#A8A8A2" }}>19 controls ·</span>
-                  <a href="https://github.com/koushiknarendra/svitch/blob/main/spec/dpdp-ai-v1.json" target="_blank" rel="noreferrer" style={{ fontSize: 11, fontFamily: MONO, color: "#71716B", textDecoration: "none" }}>dpdp-ai-v1.json ↗</a>
+                  <a href="https://github.com/koushiknarendra/governor/blob/main/spec/dpdp-ai-v1.json" target="_blank" rel="noreferrer" style={{ fontSize: 11, fontFamily: MONO, color: "#71716B", textDecoration: "none" }}>dpdp-ai-v1.json ↗</a>
                 </div>
               </div>
               <div style={{ marginTop: "auto", borderTop: "1px solid #E8E8E4", padding: "14px 20px" }}>
@@ -753,7 +753,7 @@ export default function Home() {
                 </div>
                 <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4 }}>
                   <span style={{ fontSize: 11, fontFamily: MONO, color: "#A8A8A2" }}>15 controls ·</span>
-                  <a href="https://github.com/koushiknarendra/svitch/blob/main/spec/gdpr-ai-v1.json" target="_blank" rel="noreferrer" style={{ fontSize: 11, fontFamily: MONO, color: "#71716B", textDecoration: "none" }}>gdpr-ai-v1.json ↗</a>
+                  <a href="https://github.com/koushiknarendra/governor/blob/main/spec/gdpr-ai-v1.json" target="_blank" rel="noreferrer" style={{ fontSize: 11, fontFamily: MONO, color: "#71716B", textDecoration: "none" }}>gdpr-ai-v1.json ↗</a>
                 </div>
               </div>
               <div style={{ marginTop: "auto", borderTop: "1px solid #E8E8E4", padding: "14px 20px" }}>
@@ -783,7 +783,7 @@ export default function Home() {
                 </div>
                 <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4 }}>
                   <span style={{ fontSize: 11, fontFamily: MONO, color: "#A8A8A2" }}>12 controls ·</span>
-                  <a href="https://github.com/koushiknarendra/svitch/blob/main/spec/hipaa-ai-v1.json" target="_blank" rel="noreferrer" style={{ fontSize: 11, fontFamily: MONO, color: "#71716B", textDecoration: "none" }}>hipaa-ai-v1.json ↗</a>
+                  <a href="https://github.com/koushiknarendra/governor/blob/main/spec/hipaa-ai-v1.json" target="_blank" rel="noreferrer" style={{ fontSize: 11, fontFamily: MONO, color: "#71716B", textDecoration: "none" }}>hipaa-ai-v1.json ↗</a>
                 </div>
               </div>
               <div style={{ marginTop: "auto", borderTop: "1px solid #E8E8E4", padding: "14px 20px" }}>
@@ -811,7 +811,7 @@ export default function Home() {
             ))}
           </div>
           <div style={{ fontFamily: MONO, fontSize: 13, color: "#71716B", marginTop: 56, paddingTop: 28, borderTop: "1px solid #26261F" }}>
-            Svitch makes your AI stack audit-ready before regulators come knocking.
+            Governor makes your AI stack audit-ready before regulators come knocking.
           </div>
         </div>
       </section>
@@ -821,7 +821,7 @@ export default function Home() {
         <div className="r-section-sm">
           <div className="r-grid-footer">
             <div>
-              <div style={{ fontFamily: DISPLAY, fontSize: 20, fontWeight: 700, letterSpacing: "-0.03em", marginBottom: 10 }}>Svitch</div>
+              <div style={{ fontFamily: DISPLAY, fontSize: 20, fontWeight: 700, letterSpacing: "-0.03em", marginBottom: 10 }}>Governor</div>
               <div style={{ fontFamily: MONO, fontSize: 12, color: "#71716B" }}>Open-core · Shield &amp; Tracer are Apache 2.0</div>
             </div>
             <div style={{ display: "flex", gap: 28, fontFamily: MONO, fontSize: 13, color: "#71716B", justifyContent: "center", flexWrap: "wrap" }}>
@@ -829,7 +829,7 @@ export default function Home() {
               <a href="/dpdp"    style={{ color: "#71716B" }}>DPDP</a>
               <a href="/gdpr"    style={{ color: "#71716B" }}>GDPR</a>
               <a href="/hipaa"   style={{ color: "#71716B" }}>HIPAA</a>
-              <a href="https://github.com/koushiknarendra/svitch" target="_blank" style={{ color: "#71716B" }}>GitHub</a>
+              <a href="https://github.com/koushiknarendra/governor" target="_blank" style={{ color: "#71716B" }}>GitHub</a>
             </div>
             <div className="r-text-right">
               <a href="#demo" style={{ fontFamily: MONO, fontSize: 13, color: ACCENT }}>Request early access&nbsp;→</a>
@@ -844,7 +844,7 @@ export default function Home() {
             style={{ display: "inline-block", fontFamily: DISPLAY, fontWeight: 700, letterSpacing: "-0.055em", lineHeight: 0.74, color: "#E4E3DC", fontSize: wmSize, marginBottom: "-0.1em", userSelect: "none", whiteSpace: "nowrap" }}
             aria-hidden="true"
           >
-            Svitch
+            Governor
           </div>
         </div>
       </footer>

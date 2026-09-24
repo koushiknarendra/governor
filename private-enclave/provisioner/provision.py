@@ -1,14 +1,14 @@
 """
-Svitch Enclave Provisioner
+Governor Enclave Provisioner
 
 Provisions a bare GPU server (Lambda Labs, RunPod, or any Ubuntu 22.04 box)
-into a fully configured Svitch Private Enclave in one command.
+into a fully configured Governor Private Enclave in one command.
 
 What it does:
   1. SSH into the server
   2. Install Docker, NVIDIA Container Toolkit, WireGuard
   3. Pull and start vLLM with the requested model
-  4. Deploy the Svitch inference server (PII Shield + Audit Tracer)
+  4. Deploy the Governor inference server (PII Shield + Audit Tracer)
   5. Configure WireGuard and return the customer's connection config
 
 Usage:
@@ -19,8 +19,8 @@ Usage:
         --ssh-key ~/.ssh/id_rsa
 
     # Or use environment variables
-    SVITCH_HOST=203.0.113.42 \\
-    SVITCH_CUSTOMER=razorbank \\
+    GOVERNOR_HOST=203.0.113.42 \\
+    GOVERNOR_CUSTOMER=razorbank \\
     python provision.py
 """
 
@@ -46,7 +46,7 @@ SUPPORTED_MODELS = {
 INSTALL_SCRIPT = r"""#!/bin/bash
 set -e
 
-echo "[svitch] Installing Docker..."
+echo "[governor] Installing Docker..."
 apt-get update -qq
 apt-get install -y -qq curl git wireguard
 
@@ -54,7 +54,7 @@ if ! command -v docker &>/dev/null; then
     curl -fsSL https://get.docker.com | bash
 fi
 
-echo "[svitch] Installing NVIDIA Container Toolkit..."
+echo "[governor] Installing NVIDIA Container Toolkit..."
 if command -v nvidia-smi &>/dev/null; then
     distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
     curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | \
@@ -66,12 +66,12 @@ if command -v nvidia-smi &>/dev/null; then
     apt-get install -y -qq nvidia-container-toolkit
     nvidia-ctk runtime configure --runtime=docker
     systemctl restart docker
-    echo "[svitch] GPU detected and configured"
+    echo "[governor] GPU detected and configured"
 else
-    echo "[svitch] No GPU detected — running in CPU mode (inference will be slow)"
+    echo "[governor] No GPU detected — running in CPU mode (inference will be slow)"
 fi
 
-echo "[svitch] Docker ready: $(docker --version)"
+echo "[governor] Docker ready: $(docker --version)"
 """
 
 DOCKER_COMPOSE_TEMPLATE = """\
@@ -100,18 +100,18 @@ services:
       retries: 10
       start_period: 120s
 
-  svitch-inference:
+  governor-inference:
     image: python:3.12-slim
     working_dir: /app
     volumes:
-      - ./svitch:/app
+      - ./governor:/app
     environment:
       - VLLM_BASE_URL=http://vllm:8000
       - DEFAULT_MODEL={model_name}
       - ENCLAVE_ID={enclave_id}
       - PII_MODE=redact
       - TRACER_ENABLED=true
-      - SVITCH_DB_PATH=/app/audit.db
+      - GOVERNOR_DB_PATH=/app/audit.db
     command: >
       sh -c "pip install -q fastapi uvicorn httpx &&
              uvicorn server:app --host 0.0.0.0 --port 8080"
@@ -144,8 +144,8 @@ AllowedIPs = 10.8.0.2/32
 """
 
 WIREGUARD_CLIENT_TEMPLATE = """\
-# Svitch Enclave — {customer}
-# wg-quick up svitch
+# Governor Enclave — {customer}
+# wg-quick up governor
 
 [Interface]
 PrivateKey = {client_priv}
@@ -209,12 +209,12 @@ def provision(
     if not hf_model:
         raise ValueError(f"Unknown model '{model}'. Supported: {list(SUPPORTED_MODELS)}")
 
-    enclave_id = f"svitch-{customer}"
+    enclave_id = f"governor-{customer}"
     out = output_dir / customer
     out.mkdir(parents=True, exist_ok=True)
 
     print(f"\n{'═'*56}")
-    print(f"  Svitch Enclave Provisioner")
+    print(f"  Governor Enclave Provisioner")
     print(f"  Customer : {customer}")
     print(f"  Host     : {host}")
     print(f"  Model    : {model} ({hf_model})")
@@ -236,15 +236,15 @@ def provision(
         print("      No GPU — CPU mode (suitable for testing, not production)")
 
     # ── Step 3: Upload inference server ───────────────────────────────────────
-    print("[3/5] Uploading Svitch inference stack...")
-    _ssh(host, "mkdir -p ~/svitch/pii-shield/service/detectors ~/svitch/agent-tracer/svitch_tracer", ssh_key, ssh_user)
+    print("[3/5] Uploading Governor inference stack...")
+    _ssh(host, "mkdir -p ~/governor/pii-shield/service/detectors ~/governor/agent-tracer/governor_tracer", ssh_key, ssh_user)
 
     repo_root = Path(__file__).parent.parent.parent
     for local, remote in [
-        (repo_root / "private-enclave/inference/server.py",      "~/svitch/server.py"),
-        (repo_root / "pii-shield/service/detectors",             "~/svitch/pii-shield/service/"),
-        (repo_root / "pii-shield/service/requirements.txt",      "~/svitch/pii-shield/service/requirements.txt"),
-        (repo_root / "agent-tracer/svitch_tracer",               "~/svitch/agent-tracer/"),
+        (repo_root / "private-enclave/inference/server.py",      "~/governor/server.py"),
+        (repo_root / "pii-shield/service/detectors",             "~/governor/pii-shield/service/"),
+        (repo_root / "pii-shield/service/requirements.txt",      "~/governor/pii-shield/service/requirements.txt"),
+        (repo_root / "agent-tracer/governor_tracer",               "~/governor/agent-tracer/"),
     ]:
         if Path(local).exists():
             _scp(host, str(local), remote, ssh_key, ssh_user)
@@ -263,7 +263,7 @@ def provision(
     print("      Done.")
 
     # ── Step 4: Start services ────────────────────────────────────────────────
-    print(f"[4/5] Starting vLLM ({model}) and Svitch inference server...")
+    print(f"[4/5] Starting vLLM ({model}) and Governor inference server...")
     print("      (Model download may take 5–20 minutes the first time)")
     _ssh(host, "cd ~ && docker compose up -d", ssh_key, ssh_user)
     print("      Services started. Waiting for health checks...")
@@ -273,7 +273,7 @@ def provision(
         try:
             result = _ssh(host, "curl -sf http://localhost:8080/health", ssh_key, ssh_user)
             if "ok" in result:
-                print(f"      Svitch inference server healthy after {attempt * 15}s")
+                print(f"      Governor inference server healthy after {attempt * 15}s")
                 break
         except Exception:
             print(f"      Still starting... ({attempt * 15}s)")
@@ -305,7 +305,7 @@ def provision(
     _ssh(host, "cp ~/wg0.conf /etc/wireguard/wg0.conf && wg-quick up wg0 && systemctl enable wg-quick@wg0", ssh_key, ssh_user)
 
     # Save client config
-    client_wg_path = out / "svitch.conf"
+    client_wg_path = out / "governor.conf"
     client_wg_path.write_text(client_wg)
 
     print(f"\n{'═'*56}")
@@ -315,12 +315,12 @@ def provision(
     print(f"  API endpoint   : http://10.8.0.1:8080/v1")
     print(f"\n  Connect:\n")
     print(f"    # 1. Install WireGuard and import {client_wg_path.name}")
-    print(f"    wg-quick up svitch\n")
+    print(f"    wg-quick up governor\n")
     print(f"    # 2. Point your OpenAI client at the enclave")
     print(f"    import openai")
     print(f"    client = openai.OpenAI(")
     print(f'        base_url="http://10.8.0.1:8080/v1",')
-    print(f'        api_key="svitch-enclave",')
+    print(f'        api_key="governor-enclave",')
     print(f"    )")
     print(f"\n{'═'*56}\n")
 
@@ -328,9 +328,9 @@ def provision(
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Provision a Svitch Private Enclave")
-    parser.add_argument("--host",      default=os.environ.get("SVITCH_HOST"),     help="Server public IP")
-    parser.add_argument("--customer",  default=os.environ.get("SVITCH_CUSTOMER"), help="Customer slug")
+    parser = argparse.ArgumentParser(description="Provision a Governor Private Enclave")
+    parser.add_argument("--host",      default=os.environ.get("GOVERNOR_HOST"),     help="Server public IP")
+    parser.add_argument("--customer",  default=os.environ.get("GOVERNOR_CUSTOMER"), help="Customer slug")
     parser.add_argument("--model",     default="llama-3.1-8b-instruct",           help="Model to serve")
     parser.add_argument("--ssh-key",   default=os.path.expanduser("~/.ssh/id_rsa"))
     parser.add_argument("--ssh-user",  default="ubuntu")
@@ -339,10 +339,10 @@ def main():
     args = parser.parse_args()
 
     if not args.host:
-        print("Error: --host is required (or set SVITCH_HOST env var)")
+        print("Error: --host is required (or set GOVERNOR_HOST env var)")
         sys.exit(1)
     if not args.customer:
-        print("Error: --customer is required (or set SVITCH_CUSTOMER env var)")
+        print("Error: --customer is required (or set GOVERNOR_CUSTOMER env var)")
         sys.exit(1)
 
     provision(

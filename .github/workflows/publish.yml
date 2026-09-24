@@ -75,11 +75,11 @@ jobs:
             ## Install
 
             ```bash
-            pip install svitch==${{ steps.ver.outputs.VERSION }}
+            pip install pygovernor==${{ steps.ver.outputs.VERSION }}
             ```
 
             ```bash
-            npm install svitch-sdk@${{ steps.ver.outputs.VERSION }}
+            npm install governor-sdk@${{ steps.ver.outputs.VERSION }}
             ```
 
-            See the [README](https://github.com/koushiknarendra/svitch#quickstart) for full usage.
+            See the [README](https://github.com/koushiknarendra/governor#quickstart) for full usage.

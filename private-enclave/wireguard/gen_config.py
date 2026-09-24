@@ -1,5 +1,5 @@
 """
-Svitch WireGuard Config Generator
+Governor WireGuard Config Generator
 
 Generates a WireGuard server + client keypair configuration for a new
 customer enclave. Each customer gets an isolated VPN tunnel.
@@ -123,7 +123,7 @@ def generate(
 
     # ── Server config ─────────────────────────────────────────────────────────
     server_conf = f"""\
-# Svitch Enclave — WireGuard Server
+# Governor Enclave — WireGuard Server
 # Customer: {customer}
 # Deploy to: /etc/wireguard/wg0.conf on the GPU server
 
@@ -132,7 +132,7 @@ PrivateKey = {server_priv}
 Address = {server_vpn_ip}/24
 ListenPort = {port}
 
-# Forward traffic from VPN to local Svitch inference server
+# Forward traffic from VPN to local Governor inference server
 PostUp   = iptables -t nat -A PREROUTING -i wg0 -p tcp --dport {enclave_port} -j DNAT --to-destination 127.0.0.1:{enclave_port}
 PostUp   = iptables -A FORWARD -i wg0 -j ACCEPT
 PostDown = iptables -t nat -D PREROUTING -i wg0 -p tcp --dport {enclave_port} -j DNAT --to-destination 127.0.0.1:{enclave_port}
@@ -146,9 +146,9 @@ AllowedIPs = {client_vpn_ip}/32
 
     # ── Client config ─────────────────────────────────────────────────────────
     client_conf = f"""\
-# Svitch Enclave — WireGuard Client
+# Governor Enclave — WireGuard Client
 # Customer: {customer}
-# Save to /etc/wireguard/svitch.conf and run: wg-quick up svitch
+# Save to /etc/wireguard/governor.conf and run: wg-quick up governor
 # Or import into WireGuard app on macOS / Windows / iOS / Android
 
 [Interface]
@@ -157,7 +157,7 @@ Address = {client_vpn_ip}/32
 DNS = 1.1.1.1
 
 [Peer]
-# Svitch Enclave server
+# Governor Enclave server
 PublicKey = {server_pub}
 Endpoint = {server_public_ip}:{port}
 AllowedIPs = {server_vpn_ip}/32
@@ -173,7 +173,7 @@ PersistentKeepalive = 25
     server_path.write_text(server_conf)
     client_path.write_text(client_conf)
     meta_path.write_text(f"""\
-Svitch Enclave — {customer}
+Governor Enclave — {customer}
 ─────────────────────────────────
 Server VPN IP : {server_vpn_ip}
 Client VPN IP : {client_vpn_ip}
@@ -185,7 +185,7 @@ Connect your app:
     import openai
     client = openai.OpenAI(
         base_url="http://{server_vpn_ip}:{enclave_port}/v1",
-        api_key="svitch-enclave",
+        api_key="governor-enclave",
     )
 """)
 
@@ -198,13 +198,13 @@ Connect your app:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Generate Svitch WireGuard configs")
+    parser = argparse.ArgumentParser(description="Generate Governor WireGuard configs")
     parser.add_argument("--customer",   required=True, help="Customer slug (e.g. acme-fintech)")
     parser.add_argument("--server-ip",  required=True, help="Public IP of the GPU server")
     parser.add_argument("--server-vpn", default="10.8.0.1", help="Server VPN IP (default 10.8.0.1)")
     parser.add_argument("--client-vpn", default="10.8.0.2", help="Client VPN IP (default 10.8.0.2)")
     parser.add_argument("--port",       default=51820, type=int, help="WireGuard UDP port")
-    parser.add_argument("--enclave-port", default=8080, type=int, help="Svitch inference server port")
+    parser.add_argument("--enclave-port", default=8080, type=int, help="Governor inference server port")
     parser.add_argument("--out",        default="configs", help="Output directory")
     args = parser.parse_args()
 

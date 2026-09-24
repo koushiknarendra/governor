@@ -1,34 +1,34 @@
 <div align="center">
 
-# Svitch
+# Governor
 
 **Privacy-first AI infrastructure.**
 
 PII detection · Consent management · Agent audit trails · Compliance reports
 
-[![PyPI](https://img.shields.io/pypi/v/svitch?color=1C6EF2&label=pip+install+svitch)](https://pypi.org/project/svitch/)
-[![Python](https://img.shields.io/badge/python-3.10%2B-1C6EF2)](https://pypi.org/project/svitch/)
+[![PyPI](https://img.shields.io/pypi/v/pygovernor?color=1C6EF2&label=pip+install+pygovernor)](https://pypi.org/project/pygovernor/)
+[![Python](https://img.shields.io/badge/python-3.10%2B-1C6EF2)](https://pypi.org/project/pygovernor/)
 [![License](https://img.shields.io/badge/license-Apache%202.0-16a34a)](LICENSE)
-[![CI](https://github.com/koushiknarendra/svitch/actions/workflows/ci.yml/badge.svg)](https://github.com/koushiknarendra/svitch/actions)
+[![CI](https://github.com/koushiknarendra/governor/actions/workflows/ci.yml/badge.svg)](https://github.com/koushiknarendra/governor/actions)
 
-[Dashboard](https://svitch.ai/dashboard) · [DPDP Guide](https://svitch.ai/dpdp) · [Docs](#quickstart)
+[Dashboard](https://governor.so/dashboard) · [DPDP Guide](https://governor.so/dpdp) · [Docs](#quickstart)
 
 </div>
 
 ---
 
-AI systems leak personal data by default — into LLM APIs, into logs, across providers. Svitch fixes that at the infrastructure level: detect and redact PII before prompts leave your codebase, record every agent decision in a tamper-evident audit trail, and generate compliance reports on demand.
+AI systems leak personal data by default — into LLM APIs, into logs, across providers. Governor fixes that at the infrastructure level: detect and redact PII before prompts leave your codebase, record every agent decision in a tamper-evident audit trail, and generate compliance reports on demand.
 
 Works with any LLM provider. Covers Indian PII (Aadhaar, PAN, UPI — formats no global tool handles), GDPR entities, and HIPAA PHI. India is the first compliance mode; global frameworks ship next.
 
 ```bash
-pip install svitch
+pip install pygovernor
 ```
 
 ```python
-import svitch, openai
+import governor, openai
 
-client = svitch.wrap(openai.OpenAI())
+client = governor.wrap(openai.OpenAI())
 
 # Aadhaar and PAN are redacted before the prompt reaches OpenAI
 response = client.chat.completions.create(
@@ -47,9 +47,9 @@ response = client.chat.completions.create(
 | [**Agent Tracer**](agent-tracer/) | Immutable, hash-chained audit trail of every agent decision | ✅ Live |
 | [**Consent Ledger**](consent-ledger/) | DPDP §6-compliant consent records — cryptographically verifiable | ✅ Live |
 | [**Compliance Engine**](compliance-engine/) | Auto-generate DPDP DPIA and RBI FREE Framework reports | ✅ Live |
-| [**Dashboard**](web/) | Compliance overview, live service health, DPIA generator | ✅ [svitch.ai](https://svitch.ai/dashboard) |
-| [**Python SDK**](sdk/python/) | `pip install svitch` — zero dependencies, runs locally | ✅ PyPI |
-| [**Node.js SDK**](sdk/node/) | `npm install svitch-sdk` — TypeScript-first, same API | ✅ npm |
+| [**Dashboard**](web/) | Compliance overview, live service health, DPIA generator | ✅ [governor.so](https://governor.so/dashboard) |
+| [**Python SDK**](sdk/python/) | `pip install pygovernor` — zero dependencies, runs locally | ✅ PyPI |
+| [**Node.js SDK**](sdk/node/) | `npm install governor-sdk` — TypeScript-first, same API | ✅ npm |
 
 ---
 
@@ -58,29 +58,29 @@ response = client.chat.completions.create(
 ### PII detection (local, zero network calls)
 
 ```python
-import svitch
+import governor
 
 # Detect
-entities = svitch.detect("Customer Aadhaar: 2345 6789 0123, UPI: rahul@okicici")
+entities = governor.detect("Customer Aadhaar: 2345 6789 0123, UPI: rahul@okicici")
 # [Entity(type='AADHAAR', value='2345 6789 0123'), Entity(type='UPI_ID', ...)]
 
 # Redact — token replacement
-result = svitch.redact("PAN ABCDE1234F, mobile 9876543210")
+result = governor.redact("PAN ABCDE1234F, mobile 9876543210")
 result.text   # "PAN [PAN], mobile [MOBILE_IN]"
 result.count  # 2
 
 # Redact — partial mask
-result = svitch.redact("Aadhaar: 2345 6789 0123", replacement="mask")
+result = governor.redact("Aadhaar: 2345 6789 0123", replacement="mask")
 result.text   # "Aadhaar: XXXX XXXX 0123"
 ```
 
 ### Wrap any LLM client
 
 ```python
-import svitch, openai, anthropic
+import governor, openai, anthropic
 
-client = svitch.wrap(openai.OpenAI())      # OpenAI
-client = svitch.wrap(anthropic.Anthropic()) # Anthropic
+client = governor.wrap(openai.OpenAI())      # OpenAI
+client = governor.wrap(anthropic.Anthropic()) # Anthropic
 
 # Use exactly like the original — PII is redacted in every prompt and response
 ```
@@ -88,9 +88,9 @@ client = svitch.wrap(anthropic.Anthropic()) # Anthropic
 ### Agent audit trail
 
 ```python
-from svitch_tracer import SvitchTracer   # included in pip install svitch
+from governor_tracer import GovernorTracer   # included in pip install pygovernor
 
-tracer = SvitchTracer(agent_id="loan-processor-v2")
+tracer = GovernorTracer(agent_id="loan-processor-v2")
 
 with tracer.run() as run:
     run.data_access(
@@ -115,9 +115,9 @@ valid, err = run.verify()   # cryptographic proof the chain is intact
 ### Async-native audit trail (FastAPI / asyncio)
 
 ```python
-from svitch_tracer import SvitchTracer
+from governor_tracer import GovernorTracer
 
-tracer = SvitchTracer(agent_id="loan-processor-v2")
+tracer = GovernorTracer(agent_id="loan-processor-v2")
 
 # Works natively inside FastAPI route handlers, LangGraph, or any asyncio agent
 async with tracer.arun() as run:
@@ -134,11 +134,11 @@ async with tracer.arun() as run:
 ### PII redaction + audit trail in one call
 
 ```python
-import svitch, openai
-from svitch_tracer import SvitchTracer
+import governor, openai
+from governor_tracer import GovernorTracer
 
-tracer = SvitchTracer(agent_id="loan-processor-v2")
-client = svitch.wrap(openai.OpenAI(), tracer=tracer)
+tracer = GovernorTracer(agent_id="loan-processor-v2")
+client = governor.wrap(openai.OpenAI(), tracer=tracer)
 
 # PII is redacted before the prompt reaches OpenAI.
 # The call is logged as a hash-chained audit event automatically.
@@ -150,9 +150,9 @@ response = client.chat.completions.create(
 
 ```typescript
 import OpenAI from 'openai';
-import { wrap, SvitchTracer } from 'svitch-sdk';
+import { wrap, GovernorTracer } from 'governor-sdk';
 
-const tracer = new SvitchTracer('loan-processor-v2');
+const tracer = new GovernorTracer('loan-processor-v2');
 const client = wrap(new OpenAI(), { locale: 'in', tracer });
 
 // Same interface as the original client — PII redacted, call logged.
@@ -162,12 +162,12 @@ const response = await client.chat.completions.create({ model: 'gpt-4o', message
 ### LangChain / LangGraph integration
 
 ```python
-from svitch.langchain import SvitchCallbackHandler
+from governor.langchain import GovernorCallbackHandler
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage
 
 # Attach once — every LLM call and tool use is traced automatically
-handler = SvitchCallbackHandler(agent_id="loan-processor-v2")
+handler = GovernorCallbackHandler(agent_id="loan-processor-v2")
 llm = ChatOpenAI(model="gpt-4o", callbacks=[handler])
 
 # PII is redacted before it hits the audit trail
@@ -191,7 +191,7 @@ credit cards, and all other detected entity types are replaced with `[ENTITY_TYP
 ### TypeScript / Node.js
 
 ```typescript
-import { detect, redact, wrap } from 'svitch-sdk';
+import { detect, redact, wrap } from 'governor-sdk';
 import OpenAI from 'openai';
 
 const { entities } = detect("My UPI is rahul@okicici, PAN ABCDE1234F");
@@ -253,10 +253,10 @@ Your Application
       │
       ▼
 ┌─────────────────────────────────────────────────┐
-│  Svitch SDK  (pip install svitch)               │
+│  Governor SDK  (pip install pygovernor)               │
 │                                                  │
-│  svitch.wrap(client)  →  PII redacted locally  │
-│  SvitchTracer         →  Events → Tracer API   │
+│  governor.wrap(client)  →  PII redacted locally  │
+│  GovernorTracer         →  Events → Tracer API   │
 └───────────────────────┬─────────────────────────┘
                         │  HTTPS (redacted data only)
           ┌─────────────┼──────────────┐
@@ -272,10 +272,10 @@ Your Application
                /report/rbi-free
                         │
                         ▼
-                  Dashboard (svitch.ai)
+                  Dashboard (governor.so)
 ```
 
-The SDK runs locally — no data sent to Svitch servers.
+The SDK runs locally — no data sent to Governor servers.
 The hosted services add audit storage, the dashboard, and compliance reports.
 
 ---
@@ -283,8 +283,8 @@ The hosted services add audit storage, the dashboard, and compliance reports.
 ## Self-hosting
 
 ```bash
-git clone https://github.com/koushiknarendra/svitch
-cd svitch
+git clone https://github.com/koushiknarendra/governor
+cd governor
 docker compose up
 ```
 
@@ -307,19 +307,19 @@ cd compliance-engine  && pip install -r requirements.txt && uvicorn server:app -
 Point the SDK at your local stack:
 
 ```bash
-export SVITCH_PII_SHIELD_URL=http://localhost:8001
-export SVITCH_TRACER_URL=http://localhost:8002
+export GOVERNOR_PII_SHIELD_URL=http://localhost:8001
+export GOVERNOR_TRACER_URL=http://localhost:8002
 ```
 
 ---
 
 ## Compliance guides
 
-**→ [DPDP for AI Developers](https://svitch.ai/dpdp)** — India's Digital Personal Data Protection Act mapped to code. Every section, penalties, timeline, and a compliance checklist.
+**→ [DPDP for AI Developers](https://governor.so/dpdp)** — India's Digital Personal Data Protection Act mapped to code. Every section, penalties, timeline, and a compliance checklist.
 
-**→ [GDPR for AI Developers](https://svitch.ai/gdpr)** — Articles 6–49 mapped to LLM pipeline obligations. Lawful basis, Art. 22 automated decisions, cross-border transfers, 72-hour breach notification.
+**→ [GDPR for AI Developers](https://governor.so/gdpr)** — Articles 6–49 mapped to LLM pipeline obligations. Lawful basis, Art. 22 automated decisions, cross-border transfers, 72-hour breach notification.
 
-**→ [HIPAA for AI Developers](https://svitch.ai/hipaa)** — All 18 Safe Harbor identifiers, BAA requirements, §164.312(b) audit controls, 60-day breach notification.
+**→ [HIPAA for AI Developers](https://governor.so/hipaa)** — All 18 Safe Harbor identifiers, BAA requirements, §164.312(b) audit controls, 60-day breach notification.
 
 ---
 
@@ -327,21 +327,21 @@ export SVITCH_TRACER_URL=http://localhost:8002
 
 - [x] India PII detection — Aadhaar, PAN, UPI, IFSC, mobile, GST, bank accounts
 - [x] OpenAI + Anthropic client wrappers
-- [x] Python SDK (`pip install svitch`) — zero dependencies
-- [x] Node.js SDK (`npm install svitch-sdk`) — TypeScript-first
+- [x] Python SDK (`pip install pygovernor`) — zero dependencies
+- [x] Node.js SDK (`npm install governor-sdk`) — TypeScript-first
 - [x] Agent audit trail — hash-chained, tamper-evident
 - [x] DPDP DPIA auto-generation
 - [x] RBI FREE Framework self-assessment
 - [x] Consent ledger — append-only, cryptographically verifiable
-- [x] Compliance dashboard — [svitch.ai/dashboard](https://svitch.ai/dashboard)
+- [x] Compliance dashboard — [governor.so/dashboard](https://governor.so/dashboard)
 - [x] GDPR mode — IBAN, UK NIN, EU passport, credit cards (Luhn-validated)
 - [x] HIPAA mode — SSN, US phone, MRN, NPI
-- [x] LangChain / LangGraph native integration — `SvitchCallbackHandler`
+- [x] LangChain / LangGraph native integration — `GovernorCallbackHandler`
 - [x] DPDP-AI Compliance Spec v1.0 — machine-readable open standard ([spec/dpdp-ai-v1.json](spec/dpdp-ai-v1.json))
 - [x] GDPR-AI Compliance Spec v1.0 — 15 controls, Art. 5–49 ([spec/gdpr-ai-v1.json](spec/gdpr-ai-v1.json))
 - [x] HIPAA-AI Compliance Spec v1.0 — 12 controls, all 18 Safe Harbor identifiers ([spec/hipaa-ai-v1.json](spec/hipaa-ai-v1.json))
-- [x] OpenTelemetry integration — `SvitchOtelTracer` bridges audit trail to Datadog, Jaeger, Honeycomb
-- [x] `svitch.wrap(client, tracer=tracer)` — PII redaction + audit trail in one call
+- [x] OpenTelemetry integration — `GovernorOtelTracer` bridges audit trail to Datadog, Jaeger, Honeycomb
+- [x] `governor.wrap(client, tracer=tracer)` — PII redaction + audit trail in one call
 - [x] Async-native tracer — `async with tracer.arun()` for FastAPI / asyncio agents
 - [ ] Private inference enclave — air-gapped Llama/Mistral
 
@@ -349,7 +349,7 @@ export SVITCH_TRACER_URL=http://localhost:8002
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). Good first issues are tagged [`good first issue`](https://github.com/koushiknarendra/svitch/issues?q=label%3A%22good+first+issue%22).
+See [CONTRIBUTING.md](CONTRIBUTING.md). Good first issues are tagged [`good first issue`](https://github.com/koushiknarendra/governor/issues?q=label%3A%22good+first+issue%22).
 
 High-value contributions right now:
 - Additional Indian PII patterns (Voter ID / EPIC, Passport, Driving Licence)
@@ -364,7 +364,7 @@ Apache 2.0 — free to use, modify, and distribute.
 ---
 
 <div align="center">
-Built by <a href="https://svitch.ai">Svitch</a> ·
-<a href="https://svitch.ai/dpdp">DPDP Guide</a> ·
-<a href="https://svitch.ai/dashboard">Dashboard</a>
+Built by <a href="https://governor.so">Governor</a> ·
+<a href="https://governor.so/dpdp">DPDP Guide</a> ·
+<a href="https://governor.so/dashboard">Dashboard</a>
 </div>

@@ -1,10 +1,10 @@
 """
-svitch_tracer — DPDP-compliant agent audit trail
+governor_tracer — DPDP-compliant agent audit trail
 
 Sync usage:
-    from svitch_tracer import SvitchTracer
+    from governor_tracer import GovernorTracer
 
-    tracer = SvitchTracer(agent_id="loan-processor-v2")
+    tracer = GovernorTracer(agent_id="loan-processor-v2")
 
     with tracer.run() as run:
         run.data_access(
@@ -20,9 +20,9 @@ Sync usage:
     valid, err = run.verify()
 
 Async usage (FastAPI / asyncio agents):
-    from svitch_tracer import SvitchTracer
+    from governor_tracer import GovernorTracer
 
-    tracer = SvitchTracer(agent_id="loan-processor-v2")
+    tracer = GovernorTracer(agent_id="loan-processor-v2")
 
     async with tracer.arun() as run:
         run.data_access("crm", ["aadhaar", "pan"], "kyc_verification", "CUST-001")
@@ -34,7 +34,7 @@ Async usage (FastAPI / asyncio agents):
     # Only verify() needs to be awaited.
 
 Environment:
-    SVITCH_TRACER_URL — Agent Tracer API base URL
+    GOVERNOR_TRACER_URL — Agent Tracer API base URL
                         default: https://agent-tracer.vercel.app
 """
 
@@ -50,7 +50,7 @@ from urllib.error import URLError
 from urllib.request import Request, urlopen
 
 __version__ = "0.1.3"
-__all__ = ["SvitchTracer", "RunContext", "AsyncRunContext"]
+__all__ = ["GovernorTracer", "RunContext", "AsyncRunContext"]
 
 _DEFAULT_URL = "https://agent-tracer.vercel.app"
 
@@ -58,7 +58,7 @@ _DEFAULT_URL = "https://agent-tracer.vercel.app"
 class RunContext:
     """
     Scope for a single agent execution run.
-    Returned by SvitchTracer.run() — use as a context manager.
+    Returned by GovernorTracer.run() — use as a context manager.
     Every method fires-and-forgets to the API; it never raises or blocks the agent.
     """
 
@@ -206,7 +206,7 @@ class AsyncRunContext(RunContext):
     All logging methods fire-and-forget via a background asyncio task — they
     never block the event loop.  ``verify()`` is awaitable.
 
-    Returned by ``SvitchTracer.arun()``:
+    Returned by ``GovernorTracer.arun()``:
 
         async with tracer.arun() as run:
             run.data_access("db", ["aadhaar"], "kyc")
@@ -259,14 +259,14 @@ class AsyncRunContext(RunContext):
         pass
 
 
-class SvitchTracer:
+class GovernorTracer:
     """
     Entry point for the Agent Tracer.
 
     Args:
         agent_id:  Unique name for this agent, e.g. "loan-processor-v2"
         api_url:   Agent Tracer API base URL.
-                   Defaults to SVITCH_TRACER_URL env var, then the hosted service.
+                   Defaults to GOVERNOR_TRACER_URL env var, then the hosted service.
     """
 
     def __init__(
@@ -275,7 +275,7 @@ class SvitchTracer:
         api_url: Optional[str] = None,
     ) -> None:
         self.agent_id = agent_id
-        self._url = (api_url or os.getenv("SVITCH_TRACER_URL") or _DEFAULT_URL).rstrip("/")
+        self._url = (api_url or os.getenv("GOVERNOR_TRACER_URL") or _DEFAULT_URL).rstrip("/")
 
     @contextmanager
     def run(self, run_id: Optional[str] = None) -> Generator[RunContext, None, None]:

@@ -8,7 +8,7 @@ import os
 import time
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-os.environ["SVITCH_CONSENT_DB"] = ":memory:"
+os.environ["GOVERNOR_CONSENT_DB"] = ":memory:"
 
 import ledger as L
 
@@ -127,7 +127,7 @@ print(f"  Verify instr. : {p['verify_instructions'][:60]}…")
 assert p["is_valid"]
 assert p["record_hash"]
 assert "SHA-256" in p["verify_instructions"]
-print("  PASS — proof generated, self-verifiable without Svitch access")
+print("  PASS — proof generated, self-verifiable without Governor access")
 
 
 sep("Test 8: List consents for a data principal")

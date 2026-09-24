@@ -1,5 +1,5 @@
 """
-Hyperledger Fabric client for the Svitch Consent Ledger.
+Hyperledger Fabric client for the Governor Consent Ledger.
 
 Calls the ConsentLedgerContract chaincode to anchor and verify consent
 records on-chain. Falls back gracefully when Fabric is not configured

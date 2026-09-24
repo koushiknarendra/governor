@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const COOKIE = "svitch_auth";
+const COOKIE = "governor_auth";
 
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;

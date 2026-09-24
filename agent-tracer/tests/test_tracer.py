@@ -1,5 +1,5 @@
 """
-Tests for the Svitch Agent Tracer.
+Tests for the Governor Agent Tracer.
 Run: python -m pytest tests/ -v   OR   python tests/test_tracer.py
 """
 
@@ -9,10 +9,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "pii-shield", "service"))
 
 # Use in-memory SQLite for tests
-os.environ["SVITCH_DB_PATH"] = ":memory:"
+os.environ["GOVERNOR_DB_PATH"] = ":memory:"
 
-from svitch_tracer import SvitchTracer, verify_chain, get_run
-from svitch_tracer.storage.db import init_db
+from governor_tracer import GovernorTracer, verify_chain, get_run
+from governor_tracer.storage.db import init_db
 
 
 def sep(title): print(f"\n{'─'*50}\n  {title}\n{'─'*50}")
@@ -21,7 +21,7 @@ def sep(title): print(f"\n{'─'*50}\n  {title}\n{'─'*50}")
 sep("Test 1: Basic agent run — loan processor simulation")
 
 init_db()
-tracer = SvitchTracer(agent_id="loan-processor-v1", auto_init_db=False)
+tracer = GovernorTracer(agent_id="loan-processor-v1", auto_init_db=False)
 
 with tracer.run() as run:
     # Agent accesses customer data
@@ -86,7 +86,7 @@ print("  PASS: Hash chain verified — log is tamper-evident")
 
 sep("Test 2: PII detection in LLM calls")
 
-tracer2 = SvitchTracer(agent_id="kyc-agent-v1", auto_init_db=False)
+tracer2 = GovernorTracer(agent_id="kyc-agent-v1", auto_init_db=False)
 with tracer2.run() as run:
     record = run.llm_call(
         provider="anthropic",

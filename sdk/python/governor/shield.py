@@ -35,7 +35,7 @@ class Entity:
 
 
 @dataclass
-class SvitchResult:
+class GovernorResult:
     text: str
     original_text: str
     entities: list[Entity] = field(default_factory=list)
@@ -49,7 +49,7 @@ class SvitchResult:
         return len(self.entities) == 0
 
     def __repr__(self):
-        return f"SvitchResult(count={self.count}, text={self.text!r})"
+        return f"GovernorResult(count={self.count}, text={self.text!r})"
 
 
 # ---------------------------------------------------------------------------
@@ -283,7 +283,7 @@ def redact(
     text: str,
     locale: Literal["in", "global", "all"] = "all",
     replacement: Literal["token", "mask"] = "token",
-) -> SvitchResult:
+) -> GovernorResult:
     """
     Detect and redact PII from text.
 
@@ -293,7 +293,7 @@ def redact(
         replacement: "token" replaces with [AADHAAR], "mask" uses partial masking.
 
     Returns:
-        SvitchResult with .text (redacted), .original_text, .entities, .count, .clean
+        GovernorResult with .text (redacted), .original_text, .entities, .count, .clean
     """
     if _USE_SERVICE_DETECTORS:
         if locale == "in":
@@ -304,4 +304,4 @@ def redact(
     else:
         redacted_text, entities = _inline_redact(text, replacement)
 
-    return SvitchResult(text=redacted_text, original_text=text, entities=entities)
+    return GovernorResult(text=redacted_text, original_text=text, entities=entities)

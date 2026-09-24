@@ -3,7 +3,7 @@ import Link from "next/link";
 import Logo from "../components/Logo";
 
 export const metadata: Metadata = {
-  title: "HIPAA for AI Developers — Svitch",
+  title: "HIPAA for AI Developers — Governor",
   description:
     "The complete technical guide to HIPAA compliance for AI systems handling PHI. De-identification, BAAs, audit controls, and breach notification — in code.",
 };
@@ -161,7 +161,7 @@ export default function HIPAAGuidePage() {
             <div style={{ fontSize: 12, color: "#71716B", lineHeight: 1.6, marginBottom: 12 }}>
               All 12 HIPAA controls in JSON — import into your compliance tooling.
             </div>
-            <a href="https://github.com/koushiknarendra/svitch/blob/main/spec/hipaa-ai-v1.json" target="_blank" rel="noreferrer" style={{
+            <a href="https://github.com/koushiknarendra/governor/blob/main/spec/hipaa-ai-v1.json" target="_blank" rel="noreferrer" style={{
               display: "block", textAlign: "center", padding: "7px 0",
               background: "#0D0D0B", color: "white", borderRadius: 7,
               fontSize: 12, fontWeight: 600, textDecoration: "none",
@@ -264,28 +264,28 @@ export default function HIPAAGuidePage() {
           </P>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginBottom: 24 }}>
             {[
-              { id: "1",  name: "Names",              svitch: false },
-              { id: "2",  name: "Geographic data",    svitch: false, note: "< state level" },
-              { id: "3",  name: "Dates (except year)", svitch: false },
-              { id: "4",  name: "Phone numbers",      svitch: true  },
-              { id: "5",  name: "Fax numbers",        svitch: false },
-              { id: "6",  name: "Email addresses",    svitch: true  },
-              { id: "7",  name: "SSN",                svitch: true  },
-              { id: "8",  name: "MRN",                svitch: true  },
-              { id: "9",  name: "Health plan ID",     svitch: false },
-              { id: "10", name: "Account numbers",    svitch: false },
-              { id: "11", name: "Certificate / license #", svitch: false },
-              { id: "12", name: "Vehicle identifiers", svitch: false },
-              { id: "13", name: "Device identifiers", svitch: false },
-              { id: "14", name: "Web URLs",           svitch: false },
-              { id: "15", name: "IP addresses",       svitch: true  },
-              { id: "16", name: "Biometric identifiers", svitch: false },
-              { id: "17", name: "Full-face photos",   svitch: false },
-              { id: "18", name: "NPI",                svitch: true, note: "provider ID" },
+              { id: "1",  name: "Names",              governor: false },
+              { id: "2",  name: "Geographic data",    governor: false, note: "< state level" },
+              { id: "3",  name: "Dates (except year)", governor: false },
+              { id: "4",  name: "Phone numbers",      governor: true  },
+              { id: "5",  name: "Fax numbers",        governor: false },
+              { id: "6",  name: "Email addresses",    governor: true  },
+              { id: "7",  name: "SSN",                governor: true  },
+              { id: "8",  name: "MRN",                governor: true  },
+              { id: "9",  name: "Health plan ID",     governor: false },
+              { id: "10", name: "Account numbers",    governor: false },
+              { id: "11", name: "Certificate / license #", governor: false },
+              { id: "12", name: "Vehicle identifiers", governor: false },
+              { id: "13", name: "Device identifiers", governor: false },
+              { id: "14", name: "Web URLs",           governor: false },
+              { id: "15", name: "IP addresses",       governor: true  },
+              { id: "16", name: "Biometric identifiers", governor: false },
+              { id: "17", name: "Full-face photos",   governor: false },
+              { id: "18", name: "NPI",                governor: true, note: "provider ID" },
             ].map(e => (
               <div key={e.id} style={{
-                background: e.svitch ? "#F0FDF4" : "#F5F5F3",
-                border: `1px solid ${e.svitch ? "#BBF7D0" : "#E8E8E4"}`,
+                background: e.governor ? "#F0FDF4" : "#F5F5F3",
+                border: `1px solid ${e.governor ? "#BBF7D0" : "#E8E8E4"}`,
                 borderRadius: 7, padding: "10px 12px",
               }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
@@ -294,15 +294,15 @@ export default function HIPAAGuidePage() {
                     <div style={{ fontSize: 12, fontWeight: 600, color: "#0D0D0B" }}>{e.name}</div>
                     {e.note && <div style={{ fontSize: 10, color: "#71716B" }}>{e.note}</div>}
                   </div>
-                  {e.svitch && (
-                    <span style={{ fontSize: 9, fontFamily: "'DM Mono', monospace", background: "#BBF7D0", color: "#166534", borderRadius: 4, padding: "2px 6px", flexShrink: 0 }}>svitch</span>
+                  {e.governor && (
+                    <span style={{ fontSize: 9, fontFamily: "'DM Mono', monospace", background: "#BBF7D0", color: "#166534", borderRadius: 4, padding: "2px 6px", flexShrink: 0 }}>governor</span>
                   )}
                 </div>
               </div>
             ))}
           </div>
           <Callout type="info">
-            Green cells are identifiers Svitch detects automatically with <Code>locale=&apos;us&apos;</Code>.
+            Green cells are identifiers Governor detects automatically with <Code>locale=&apos;us&apos;</Code>.
             Names, geographic data, dates, fax numbers, URLs, vehicle/device identifiers, biometrics,
             and photos require NER models or specialised detection beyond regex patterns.
           </Callout>
@@ -321,13 +321,13 @@ export default function HIPAAGuidePage() {
             This is the simplest architectural choice: strip PHI locally, send clean data to the
             LLM, keep the original PHI in your controlled environment.
           </P>
-          <CodeBlock lang="python">{`import svitch, openai
-from svitch_tracer import SvitchTracer
+          <CodeBlock lang="python">{`import governor, openai
+from governor_tracer import GovernorTracer
 
-tracer = SvitchTracer(agent_id="clinical-coder-v2")
+tracer = GovernorTracer(agent_id="clinical-coder-v2")
 
 # locale='us' activates: SSN_US, MRN, NPI, US_PHONE, EMAIL, IP addresses, CREDIT_CARD
-client = svitch.wrap(
+client = governor.wrap(
     openai.OpenAI(),
     locale="us",
     tracer=tracer,   # every call logged to audit trail
@@ -347,10 +347,10 @@ response = client.chat.completions.create(
 # "Code this note: Patient [MRN], [SSN_US]. Admitted 2026-06-10 with chest pain..."
 # Dates are not redacted by regex — use NER model for full Safe Harbor compliance`}</CodeBlock>
           <Callout type="warn">
-            <strong>Regex alone does not achieve full Safe Harbor.</strong> Svitch detects the
+            <strong>Regex alone does not achieve full Safe Harbor.</strong> Governor detects the
             structured PHI identifiers (SSN, MRN, NPI, phone, email, IP). Names, geographic
             data smaller than a state, and dates require NER-based detection. For full Safe Harbor
-            compliance in clinical AI, combine Svitch with a medical NER model (e.g. spaCy + medspacy,
+            compliance in clinical AI, combine Governor with a medical NER model (e.g. spaCy + medspacy,
             AWS Comprehend Medical, or Azure Text Analytics for Health).
           </Callout>
 
@@ -383,7 +383,7 @@ response = client.chat.completions.create(
               { vendor: "Azure OpenAI", status: "Available", url: "azure.microsoft.com", note: "Via Azure Healthcare BAA" },
               { vendor: "Anthropic", status: "Check current", url: "anthropic.com/legal", note: "Verify at anthropic.com" },
               { vendor: "AWS Bedrock", status: "Available", url: "aws.amazon.com/compliance", note: "Via AWS BAA" },
-              { vendor: "Self-hosted", status: "Not required", url: "", note: "Svitch Enclave: no third party" },
+              { vendor: "Self-hosted", status: "Not required", url: "", note: "Governor Enclave: no third party" },
             ].map(v => (
               <div key={v.vendor} style={{ background: "#FAFAF8", border: "1px solid #E8E8E4", borderRadius: 8, padding: "12px 14px" }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: "#0D0D0B", marginBottom: 2 }}>{v.vendor}</div>
@@ -405,9 +405,9 @@ response = client.chat.completions.create(
             task requires — not the entire patient record. An AI agent coding a discharge diagnosis
             needs the clinical note, not the patient&apos;s SSN, insurance ID, or home address.
           </P>
-          <CodeBlock lang="python">{`from svitch_tracer import SvitchTracer
+          <CodeBlock lang="python">{`from governor_tracer import GovernorTracer
 
-tracer = SvitchTracer(agent_id="icd10-coder")
+tracer = GovernorTracer(agent_id="icd10-coder")
 
 with tracer.run() as run:
     # Log exactly which fields were accessed and why
@@ -433,9 +433,9 @@ with tracer.run() as run:
             enforcement actions. In 2023–2024, OCR settled cases where breaches were not discovered
             for months because no audit logs existed.
           </P>
-          <CodeBlock lang="python">{`from svitch_tracer import SvitchTracer
+          <CodeBlock lang="python">{`from governor_tracer import GovernorTracer
 
-tracer = SvitchTracer(agent_id="prior-auth-agent")
+tracer = GovernorTracer(agent_id="prior-auth-agent")
 
 with tracer.run() as run:
     # §164.312(b) — every activity recorded
@@ -475,7 +475,7 @@ print(f"Audit chain intact: {valid}")`}</CodeBlock>
           <Callout type="info">
             <strong>Retention.</strong> HIPAA documentation must be retained for 6 years from
             creation or last effective date (45 CFR §164.530(j)). State laws may require longer
-            retention for medical records. Svitch audit records should be exported to
+            retention for medical records. Governor audit records should be exported to
             immutable storage (S3 Object Lock, GCS Retention Policy) to meet this requirement.
           </Callout>
 
@@ -503,7 +503,7 @@ print(f"Audit chain intact: {valid}")`}</CodeBlock>
           </div>
           <P>
             For AI systems, the most likely breach scenario is un-redacted PHI reaching an LLM
-            API. The Svitch audit trail records <Code>pii_redacted: true/false</Code> for every
+            API. The Governor audit trail records <Code>pii_redacted: true/false</Code> for every
             LLM call — making it possible to determine exactly which calls exposed PHI, what
             types, and on behalf of which patients.
           </P>
@@ -541,11 +541,11 @@ print(f"Audit chain intact: {valid}")`}</CodeBlock>
 
           {/* Implementation */}
           <H2 id="impl-pii">Implementation: PHI detection</H2>
-          <CodeBlock lang="python">{`# pip install svitch
-import svitch
+          <CodeBlock lang="python">{`# pip install pygovernor
+import governor
 
 # Detect US PHI identifiers
-entities = svitch.detect(
+entities = governor.detect(
     "Patient MRN P123456, SSN 123-45-6789, NPI 1234567893, phone +1-800-555-1234",
     locale="us",
 )
@@ -557,13 +557,13 @@ entities = svitch.detect(
 # ]
 
 # Redact — token replacement
-result = svitch.redact("SSN: 123-45-6789, MRN: P123456", locale="us")
+result = governor.redact("SSN: 123-45-6789, MRN: P123456", locale="us")
 result.text    # "SSN: [SSN_US], MRN: [MRN]"
 
 # Redact — mask (preserves last segment for reference)
-result = svitch.redact("SSN: 123-45-6789", locale="us", replacement="mask")
+result = governor.redact("SSN: 123-45-6789", locale="us", replacement="mask")
 result.text    # "SSN: XXX-XX-6789"`}</CodeBlock>
-          <H3>US PHI types Svitch detects</H3>
+          <H3>US PHI types Governor detects</H3>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginBottom: 24 }}>
             {[
               { type: "SSN_US",    note: "Invalid prefixes excluded (000, 666, 900–999)" },
@@ -584,12 +584,12 @@ result.text    # "SSN: XXX-XX-6789"`}</CodeBlock>
 
           {/* Audit implementation */}
           <H2 id="impl-audit">Implementation: HIPAA-compliant AI audit trail</H2>
-          <CodeBlock lang="typescript">{`// npm install svitch-sdk
-import { SvitchTracer } from 'svitch/tracer';
-import { wrap } from 'svitch-sdk';
+          <CodeBlock lang="typescript">{`// npm install governor-sdk
+import { GovernorTracer } from 'governor/tracer';
+import { wrap } from 'governor-sdk';
 import OpenAI from 'openai';
 
-const tracer = new SvitchTracer('clinical-coder-v2');
+const tracer = new GovernorTracer('clinical-coder-v2');
 
 // wrap auto-logs every API call with pii_types and pii_redacted=true
 const client = wrap(new OpenAI(), { locale: 'us', tracer });
@@ -653,7 +653,7 @@ async function codeNote(patientId: string, note: string) {
           <Callout type="warn">
             In 2024, the largest HIPAA settlement was $4.75M (Change Healthcare). Missing BAAs
             with sub-processors, inadequate risk analysis, and lack of audit controls were the
-            primary findings. All three are directly addressable with Svitch.
+            primary findings. All three are directly addressable with Governor.
           </Callout>
 
           {/* Checklist */}
@@ -663,8 +663,8 @@ async function codeNote(patientId: string, note: string) {
           <Check>Identify all PHI data flows through your AI system — prompts, tool calls, responses</Check>
           <Check>Conduct a risk analysis covering AI-specific threats (prompt injection, vendor log storage)</Check>
           <Check>Sign BAAs with all LLM API vendors that may receive PHI</Check>
-          <Check>Implement PHI de-identification: <Code>svitch.wrap(client, locale=&apos;us&apos;)</Code></Check>
-          <Check>Assign unique agent IDs to all AI agents: <Code>SvitchTracer(agent_id=&apos;...&apos;)</Code></Check>
+          <Check>Implement PHI de-identification: <Code>governor.wrap(client, locale=&apos;us&apos;)</Code></Check>
+          <Check>Assign unique agent IDs to all AI agents: <Code>GovernorTracer(agent_id=&apos;...&apos;)</Code></Check>
           <Check>Train all AI/ML team members on HIPAA obligations (§164.308(a)(5))</Check>
           <Check>Define minimum necessary PHI per agent purpose (§164.502(b))</Check>
 
@@ -693,7 +693,7 @@ async function codeNote(patientId: string, note: string) {
               </div>
               <div style={{ fontSize: 14, color: "#A8A8A2", lineHeight: 1.65 }}>
                 PHI de-identification, §164.312(b) audit controls, and BAA-eliminating{" "}
-                <Code style={{ background: "rgba(255,255,255,0.1)", color: "#E8E8E4" }}>svitch.wrap(client, locale=&apos;us&apos;)</Code>.
+                <Code style={{ background: "rgba(255,255,255,0.1)", color: "#E8E8E4" }}>governor.wrap(client, locale=&apos;us&apos;)</Code>.
               </div>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10, flexShrink: 0 }}>
@@ -702,7 +702,7 @@ async function codeNote(patientId: string, note: string) {
                 background: "#059669", color: "white", textDecoration: "none",
                 fontSize: 14, fontWeight: 600, textAlign: "center", whiteSpace: "nowrap",
               }}>Open Dashboard →</Link>
-              <a href="https://github.com/koushiknarendra/svitch/blob/main/spec/hipaa-ai-v1.json" target="_blank" rel="noreferrer" style={{
+              <a href="https://github.com/koushiknarendra/governor/blob/main/spec/hipaa-ai-v1.json" target="_blank" rel="noreferrer" style={{
                 display: "block", padding: "9px 24px", borderRadius: 8,
                 background: "rgba(255,255,255,0.08)", color: "#A8A8A2", textDecoration: "none",
                 fontSize: 14, fontWeight: 500, textAlign: "center", border: "1px solid rgba(255,255,255,0.1)",

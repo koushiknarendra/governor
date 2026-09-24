@@ -1,10 +1,10 @@
 {
-  "$schema": "https://svitch.ai/schemas/dpdp-ai/v1",
+  "$schema": "https://governor.so/schemas/dpdp-ai/v1",
   "spec_id": "DPDP-AI-SPEC-001",
   "version": "1.0.0",
   "title": "DPDP-AI Compliance Specification v1.0",
   "description": "Machine-readable specification defining what the Digital Personal Data Protection Act, 2023 requires from AI systems that process personal data of Indian data principals. Each control maps to an Act section, carries a verifiable assertion, and is linked to a penalty tier.",
-  "authors": ["Svitch (https://svitch.ai)"],
+  "authors": ["Governor (https://governor.so)"],
   "license": "CC-BY-4.0",
   "effective_date": "2025-01-01",
   "jurisdiction": "IN",
@@ -65,10 +65,10 @@
         "consent_timestamp_precedes_processing_timestamp"
       ],
       "implementation": {
-        "svitch_feature": "consent-ledger",
+        "governor_feature": "consent-ledger",
         "api_endpoint": "/consent/grant",
         "verification_endpoint": "/consent/{id}/verify",
-        "sdk_method": "svitch.consent.grant(data_principal_id, purpose, timestamp)"
+        "sdk_method": "governor.consent.grant(data_principal_id, purpose, timestamp)"
       },
       "penalty_tier": 5,
       "audit_event_type": "consent_grant"
@@ -90,9 +90,9 @@
         "notice_available_in_english_or_scheduled_language"
       ],
       "implementation": {
-        "svitch_feature": "consent-ledger",
+        "governor_feature": "consent-ledger",
         "api_endpoint": "/consent/notice",
-        "sdk_method": "svitch.consent.send_notice(data_principal_id, notice_payload)"
+        "sdk_method": "governor.consent.send_notice(data_principal_id, notice_payload)"
       },
       "penalty_tier": 5,
       "audit_event_type": "consent_notice_sent"
@@ -112,9 +112,9 @@
         "downstream_processors_notified_within_reasonable_time"
       ],
       "implementation": {
-        "svitch_feature": "consent-ledger",
+        "governor_feature": "consent-ledger",
         "api_endpoint": "/consent/{id}/withdraw",
-        "sdk_method": "svitch.consent.withdraw(data_principal_id)"
+        "sdk_method": "governor.consent.withdraw(data_principal_id)"
       },
       "penalty_tier": 5,
       "audit_event_type": "consent_withdrawal"
@@ -141,10 +141,10 @@
         "EMAIL", "IPV4", "IPV6", "PHONE_INTL"
       ],
       "implementation": {
-        "svitch_feature": "pii-shield",
+        "governor_feature": "pii-shield",
         "api_endpoint": "/redact",
-        "sdk_method": "svitch.redact(text)",
-        "sdk_wrap": "svitch.wrap(llm_client)"
+        "sdk_method": "governor.redact(text)",
+        "sdk_wrap": "governor.wrap(llm_client)"
       },
       "penalty_tier": 1,
       "audit_event_type": "pii_redaction"
@@ -163,7 +163,7 @@
         "purpose_is_logged_at_data_access_time"
       ],
       "implementation": {
-        "svitch_feature": "agent-tracer",
+        "governor_feature": "agent-tracer",
         "api_endpoint": "/runs/{id}/events",
         "sdk_method": "run.data_access(source, fields_accessed, purpose, data_principal_id)"
       },
@@ -198,11 +198,11 @@
         "hash": "sha256 — hash of this event including prev_hash"
       },
       "implementation": {
-        "svitch_feature": "agent-tracer",
+        "governor_feature": "agent-tracer",
         "api_endpoint": "/runs/{id}/events",
         "verify_endpoint": "/runs/{id}/verify",
-        "sdk_method": "SvitchTracer(agent_id).run()",
-        "langchain_integration": "SvitchCallbackHandler(agent_id)"
+        "sdk_method": "GovernorTracer(agent_id).run()",
+        "langchain_integration": "GovernorCallbackHandler(agent_id)"
       },
       "penalty_tier": 1,
       "audit_event_type": "all"
@@ -230,7 +230,7 @@
         "checkpoint_timestamp_recorded"
       ],
       "implementation": {
-        "svitch_feature": "agent-tracer",
+        "governor_feature": "agent-tracer",
         "sdk_method": "run.human_checkpoint(question, approved, reviewer_id)",
         "rbi_free_alignment": "RBI FREE Framework — Human Oversight (HO) requirement"
       },
@@ -253,9 +253,9 @@
         "response_includes_processing_purposes"
       ],
       "implementation": {
-        "svitch_feature": "compliance-engine",
+        "governor_feature": "compliance-engine",
         "api_endpoint": "/report/data-principal/{id}",
-        "sdk_method": "svitch.compliance.data_principal_report(data_principal_id)"
+        "sdk_method": "governor.compliance.data_principal_report(data_principal_id)"
       },
       "penalty_tier": 5,
       "audit_event_type": "access_request"
@@ -276,9 +276,9 @@
         "audit_trail_of_erasure_maintained"
       ],
       "implementation": {
-        "svitch_feature": "consent-ledger",
+        "governor_feature": "consent-ledger",
         "api_endpoint": "/data-principal/{id}/erase",
-        "sdk_method": "svitch.compliance.erase(data_principal_id)"
+        "sdk_method": "governor.compliance.erase(data_principal_id)"
       },
       "penalty_tier": 5,
       "audit_event_type": "erasure_request"
@@ -319,8 +319,8 @@
         "security_assessment_conducted_annually"
       ],
       "implementation": {
-        "svitch_feature": "pii-shield",
-        "note": "svitch.wrap() ensures no PII reaches external LLM APIs. Encryption and access control are infrastructure responsibilities."
+        "governor_feature": "pii-shield",
+        "note": "governor.wrap() ensures no PII reaches external LLM APIs. Encryption and access control are infrastructure responsibilities."
       },
       "penalty_tier": 1,
       "audit_event_type": "security_assessment"
@@ -341,7 +341,7 @@
       ],
       "implementation": {
         "note": "Organisational control with technical dependency on audit trail for breach scope determination.",
-        "svitch_feature": "agent-tracer",
+        "governor_feature": "agent-tracer",
         "sdk_method": "run.verify() — hash chain verification to detect tampering"
       },
       "penalty_tier": 2,
@@ -363,8 +363,8 @@
         "processor_list_is_disclosed_in_privacy_notice"
       ],
       "implementation": {
-        "note": "Legal/contractual control. Technical mitigation: svitch.wrap() reduces PII exposure to vendors.",
-        "best_practice": "Use enterprise DPA with zero-retention clauses or deploy private inference (Svitch Enclave)"
+        "note": "Legal/contractual control. Technical mitigation: governor.wrap() reduces PII exposure to vendors.",
+        "best_practice": "Use enterprise DPA with zero-retention clauses or deploy private inference (Governor Enclave)"
       },
       "penalty_tier": 5,
       "audit_event_type": "processor_agreement"
@@ -384,9 +384,9 @@
         "transfer_is_documented_in_records_of_processing"
       ],
       "implementation": {
-        "svitch_feature": "pii-shield",
-        "note": "svitch.wrap() with locale='in' ensures Indian PII is redacted before prompts reach foreign APIs.",
-        "sdk_method": "svitch.wrap(client, locale='in')"
+        "governor_feature": "pii-shield",
+        "note": "governor.wrap() with locale='in' ensures Indian PII is redacted before prompts reach foreign APIs.",
+        "sdk_method": "governor.wrap(client, locale='in')"
       },
       "penalty_tier": 5,
       "audit_event_type": "cross_border_transfer"
@@ -406,8 +406,8 @@
         "minor_status_checked_before_each_ai_session"
       ],
       "implementation": {
-        "svitch_feature": "consent-ledger",
-        "sdk_method": "svitch.consent.grant(data_principal_id, purpose, is_minor=True, guardian_id=...)"
+        "governor_feature": "consent-ledger",
+        "sdk_method": "governor.consent.grant(data_principal_id, purpose, is_minor=True, guardian_id=...)"
       },
       "penalty_tier": 3,
       "audit_event_type": "parental_consent_grant"
@@ -428,7 +428,7 @@
       ],
       "implementation": {
         "note": "Requires minor_flag to be passed through all AI pipeline stages.",
-        "svitch_feature": "agent-tracer",
+        "governor_feature": "agent-tracer",
         "sdk_method": "run.data_access(source, fields, purpose, data_principal_id, is_minor=True)"
       },
       "penalty_tier": 3,
@@ -450,9 +450,9 @@
         "dpia_reviewed_annually_or_on_material_change"
       ],
       "implementation": {
-        "svitch_feature": "compliance-engine",
+        "governor_feature": "compliance-engine",
         "api_endpoint": "/report/dpdp-dpia",
-        "sdk_method": "svitch.compliance.generate_dpia(system_description, data_flows)"
+        "sdk_method": "governor.compliance.generate_dpia(system_description, data_flows)"
       },
       "penalty_tier": 4,
       "audit_event_type": "dpia_completion"
@@ -473,9 +473,9 @@
         "audit_report_submitted_to_dpbi"
       ],
       "implementation": {
-        "svitch_feature": "compliance-engine",
+        "governor_feature": "compliance-engine",
         "api_endpoint": "/report/annual-audit",
-        "sdk_method": "svitch.compliance.generate_audit_report(year)"
+        "sdk_method": "governor.compliance.generate_audit_report(year)"
       },
       "penalty_tier": 4,
       "audit_event_type": "annual_audit"
@@ -711,28 +711,28 @@
     "pillars": [
       {
         "pillar": "Accountability",
-        "svitch_controls": ["DPDP-AI-006", "DPDP-AI-007", "DPDP-AI-017"],
-        "svitch_features": ["agent-tracer", "compliance-engine"]
+        "governor_controls": ["DPDP-AI-006", "DPDP-AI-007", "DPDP-AI-017"],
+        "governor_features": ["agent-tracer", "compliance-engine"]
       },
       {
         "pillar": "Fairness",
-        "svitch_controls": ["DPDP-AI-005", "DPDP-AI-008"],
-        "svitch_features": ["compliance-engine"]
+        "governor_controls": ["DPDP-AI-005", "DPDP-AI-008"],
+        "governor_features": ["compliance-engine"]
       },
       {
         "pillar": "Transparency",
-        "svitch_controls": ["DPDP-AI-001", "DPDP-AI-002", "DPDP-AI-006", "DPDP-AI-008"],
-        "svitch_features": ["consent-ledger", "agent-tracer"]
+        "governor_controls": ["DPDP-AI-001", "DPDP-AI-002", "DPDP-AI-006", "DPDP-AI-008"],
+        "governor_features": ["consent-ledger", "agent-tracer"]
       },
       {
         "pillar": "Privacy and Security",
-        "svitch_controls": ["DPDP-AI-004", "DPDP-AI-011", "DPDP-AI-012", "DPDP-AI-014"],
-        "svitch_features": ["pii-shield"]
+        "governor_controls": ["DPDP-AI-004", "DPDP-AI-011", "DPDP-AI-012", "DPDP-AI-014"],
+        "governor_features": ["pii-shield"]
       },
       {
         "pillar": "Human Oversight",
-        "svitch_controls": ["DPDP-AI-007"],
-        "svitch_features": ["agent-tracer"]
+        "governor_controls": ["DPDP-AI-007"],
+        "governor_features": ["agent-tracer"]
       }
     ]
   },
@@ -744,10 +744,10 @@
         "✓ Sign DPAs with all LLM API vendors",
         "✓ Designate Grievance Officer and DPO (SDFs)",
         "✓ Draft privacy notice covering AI processing",
-        "✓ Integrate svitch.wrap() on all LLM clients",
-        "✓ Integrate SvitchTracer on all agent workflows",
+        "✓ Integrate governor.wrap() on all LLM clients",
+        "✓ Integrate GovernorTracer on all agent workflows",
         "✓ Implement consent collection and storage",
-        "✓ Test PII redaction coverage with svitch.detect()",
+        "✓ Test PII redaction coverage with governor.detect()",
         "✓ Verify audit trail hash chain integrity"
       ]
     },

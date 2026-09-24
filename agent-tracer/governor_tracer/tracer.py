@@ -1,10 +1,10 @@
 """
-SvitchTracer — the main interface developers use.
+GovernorTracer — the main interface developers use.
 
 Usage:
-    from svitch_tracer import SvitchTracer
+    from governor_tracer import GovernorTracer
 
-    tracer = SvitchTracer(agent_id="loan-processor-v1")
+    tracer = GovernorTracer(agent_id="loan-processor-v1")
 
     with tracer.run() as run:
         run.llm_call(
@@ -42,7 +42,7 @@ from .storage import db
 class RunContext:
     run_id: str
     agent_id: str
-    _tracer: "SvitchTracer"
+    _tracer: "GovernorTracer"
 
     def llm_call(
         self,
@@ -184,7 +184,7 @@ class RunContext:
         return db.get_run(self.run_id)
 
 
-class SvitchTracer:
+class GovernorTracer:
     """
     Main entry point. One tracer per agent type.
 

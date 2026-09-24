@@ -1,15 +1,15 @@
 """
-Svitch Router — route prompts to the right LLM provider automatically.
+Governor Router — route prompts to the right LLM provider automatically.
 
 Usage:
-    from svitch import Router
+    from governor import Router
     import openai, anthropic
 
     router = Router()
     router.add("openai",    openai.OpenAI())
     router.add("anthropic", anthropic.Anthropic())
 
-    # Auto-routing: Svitch classifies complexity and picks provider + model
+    # Auto-routing: Governor classifies complexity and picks provider + model
     r = router.chat(messages=[{"role": "user", "content": "What is Aadhaar?"}])
     print(r.content)
     print(r.provider, r.model, r.tier)   # "openai", "gpt-4o-mini", "fast"
@@ -157,7 +157,7 @@ def _normalise_anthropic(resp: Any, provider_name: str) -> RouteResult:
     content = resp.content[0].text if resp.content else ""
     usage = resp.usage
     return RouteResult(
-        id=f"svitch-{uuid.uuid4().hex[:12]}",
+        id=f"governor-{uuid.uuid4().hex[:12]}",
         object="chat.completion",
         choices=[_Choice(
             index=0,

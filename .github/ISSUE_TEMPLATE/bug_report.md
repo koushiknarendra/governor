@@ -19,7 +19,7 @@ labels: bug
 <!-- what was returned -->
 
 **SDK version**
-<!-- pip show svitch | grep Version -->
+<!-- pip show governor | grep Version -->
 
 **Service or SDK?**
-<!-- pip install svitch (local), or the hosted API, or self-hosted -->
+<!-- pip install pygovernor (local), or the hosted API, or self-hosted -->

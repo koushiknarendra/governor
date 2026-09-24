@@ -1,8 +1,8 @@
 /**
- * Svitch Consent Ledger — Hyperledger Fabric Chaincode
+ * Governor Consent Ledger — Hyperledger Fabric Chaincode
  *
  * Deployed on a permissioned Fabric network where:
- *   - Svitch operates one peer node
+ *   - Governor operates one peer node
  *   - The enterprise (bank/NBFC) operates one peer node
  *   - Optionally: DSCI / RBI-appointed auditor operates a third node
  *
@@ -40,17 +40,17 @@ interface VerifyResult {
   anchor?: ConsentAnchor;
 }
 
-@Info({ title: "SvitchConsentLedger", description: "DPDP consent records on Hyperledger Fabric" })
+@Info({ title: "GovernorConsentLedger", description: "DPDP consent records on Hyperledger Fabric" })
 export class ConsentLedgerContract extends Contract {
 
   constructor() {
-    super("SvitchConsentLedger");
+    super("GovernorConsentLedger");
   }
 
   @Transaction(false)
   @Returns("string")
   async Ping(_ctx: Context): Promise<string> {
-    return JSON.stringify({ status: "ok", chaincode: "SvitchConsentLedger", version: "1.0" });
+    return JSON.stringify({ status: "ok", chaincode: "GovernorConsentLedger", version: "1.0" });
   }
 
   /**
@@ -127,8 +127,8 @@ export class ConsentLedgerContract extends Contract {
   }
 
   /**
-   * Verify a consent record — callable by any peer without Svitch access.
-   * Regulators use this to confirm consent existed independently of Svitch.
+   * Verify a consent record — callable by any peer without Governor access.
+   * Regulators use this to confirm consent existed independently of Governor.
    */
   @Transaction(false)
   @Returns("string")

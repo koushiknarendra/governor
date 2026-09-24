@@ -1,10 +1,10 @@
-# svitch
+# governor
 
 DPDP-compliant AI data security for Indian enterprises.  
 Zero dependencies. Runs locally. Works with any LLM provider.
 
 ```bash
-pip install svitch
+pip install pygovernor
 ```
 
 ---
@@ -14,20 +14,20 @@ pip install svitch
 Detects and redacts Indian PII (Aadhaar, PAN, UPI, IFSC, mobile, GST, bank accounts) and global PII (email, IP) — entirely locally, no network calls.
 
 ```python
-import svitch
+import governor
 
 # Detect
-entities = svitch.detect("Customer Aadhaar: 2345 6789 0123, PAN: ABCDE1234F")
+entities = governor.detect("Customer Aadhaar: 2345 6789 0123, PAN: ABCDE1234F")
 # [Entity(type='AADHAAR', value='2345 6789 0123', ...), Entity(type='PAN', ...)]
 
 # Redact (token replacement)
-result = svitch.redact("Call me on 9876543210, UPI: rahul@okicici")
+result = governor.redact("Call me on 9876543210, UPI: rahul@okicici")
 result.text   # "Call me on [MOBILE_IN], UPI: [UPI_ID]"
 result.count  # 2
 result.clean  # False
 
 # Redact (partial mask)
-result = svitch.redact("Aadhaar: 2345 6789 0123", replacement="mask")
+result = governor.redact("Aadhaar: 2345 6789 0123", replacement="mask")
 result.text   # "Aadhaar: XXXX XXXX 0123"
 ```
 
@@ -36,9 +36,9 @@ result.text   # "Aadhaar: XXXX XXXX 0123"
 PII is redacted from every prompt before it leaves your network, and from every response before it's stored or displayed.
 
 ```python
-import svitch, openai
+import governor, openai
 
-client = svitch.wrap(openai.OpenAI())
+client = governor.wrap(openai.OpenAI())
 # Use exactly like openai.OpenAI() — PII is handled automatically
 
 response = client.chat.completions.create(
@@ -53,8 +53,8 @@ response = client.chat.completions.create(
 
 Anthropic:
 ```python
-import svitch, anthropic
-client = svitch.wrap(anthropic.Anthropic())
+import governor, anthropic
+client = governor.wrap(anthropic.Anthropic())
 ```
 
 ---
@@ -65,9 +65,9 @@ Records every agent decision in an immutable, hash-chained audit log.
 Required by DPDP §8 and the RBI FREE AI Framework.
 
 ```python
-from svitch_tracer import SvitchTracer
+from governor_tracer import GovernorTracer
 
-tracer = SvitchTracer(agent_id="loan-processor-v2")
+tracer = GovernorTracer(agent_id="loan-processor-v2")
 
 with tracer.run() as run:
     run.data_access(
@@ -106,7 +106,7 @@ assert valid, f"Audit chain broken: {err}"
 ### Configuration
 
 ```bash
-export SVITCH_TRACER_URL=https://agent-tracer.vercel.app  # default (hosted)
+export GOVERNOR_TRACER_URL=https://agent-tracer.vercel.app  # default (hosted)
 # or point to your self-hosted Agent Tracer
 ```
 
@@ -130,4 +130,4 @@ export SVITCH_TRACER_URL=https://agent-tracer.vercel.app  # default (hosted)
 
 ## License
 
-Apache 2.0 — [svitch.ai](https://svitch.ai) · [DPDP Guide](https://svitch.ai/dpdp) · [GitHub](https://github.com/koushiknarendra/svitch)
+Apache 2.0 — [governor.so](https://governor.so) · [DPDP Guide](https://governor.so/dpdp) · [GitHub](https://github.com/koushiknarendra/governor)

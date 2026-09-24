@@ -13,7 +13,7 @@ COPY pii-shield/service/detectors ./pii-shield/service/detectors
 COPY pii-shield/service/requirements.txt ./pii-shield/service/requirements.txt
 RUN pip install --no-cache-dir -r pii-shield/service/requirements.txt
 
-COPY agent-tracer/svitch_tracer ./agent-tracer/svitch_tracer
+COPY agent-tracer/governor_tracer ./agent-tracer/governor_tracer
 COPY agent-tracer/__init__.py ./agent-tracer/__init__.py 2>/dev/null || true
 
 EXPOSE 8080

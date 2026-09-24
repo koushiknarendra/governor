@@ -56,14 +56,14 @@ export default function Sidebar() {
 
       {/* Bottom */}
       <div style={{ padding: "16px 10px 0", borderTop: "1px solid rgba(255,255,255,0.07)" }}>
-        <a href="https://github.com/koushiknarendra/svitch" target="_blank" rel="noreferrer" style={{
+        <a href="https://github.com/koushiknarendra/governor" target="_blank" rel="noreferrer" style={{
           display: "flex", alignItems: "center", gap: 10, padding: "9px 10px", borderRadius: 8,
           color: "#7A7A74", textDecoration: "none", fontSize: 14,
         }}>
           <IconGithub size={16} color="#4A4A44" />
           GitHub
         </a>
-        <a href="https://github.com/koushiknarendra/svitch#quickstart" target="_blank" rel="noreferrer" style={{
+        <a href="https://github.com/koushiknarendra/governor#quickstart" target="_blank" rel="noreferrer" style={{
           display: "flex", alignItems: "center", gap: 10, padding: "9px 10px", borderRadius: 8,
           color: "#7A7A74", textDecoration: "none", fontSize: 14,
         }}>

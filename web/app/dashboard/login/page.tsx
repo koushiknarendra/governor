@@ -42,7 +42,7 @@ export default function LoginPage() {
             fontSize: 16, fontWeight: 700, color: "white", fontFamily: "Space Grotesk, sans-serif",
           }}>S</span>
           <span style={{ color: "white", fontSize: 17, fontWeight: 600, fontFamily: "Space Grotesk, sans-serif" }}>
-            Svitch Dashboard
+            Governor Dashboard
           </span>
         </div>
 

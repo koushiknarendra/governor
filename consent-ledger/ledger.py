@@ -1,8 +1,8 @@
 """
-Svitch Consent Ledger
+Governor Consent Ledger
 
 Records data principal consent events in a hash-chained, tamper-evident log.
-Designed to be independently verifiable by regulators without trusting Svitch.
+Designed to be independently verifiable by regulators without trusting Governor.
 
 Storage backends (in order of trust hierarchy):
   1. Hyperledger Fabric (permissioned chain) — strongest, regulator can run own node
@@ -10,7 +10,7 @@ Storage backends (in order of trust hierarchy):
   3. In-memory (tests)
 
 Each consent record is cryptographically linked to the previous one (Merkle chain).
-A regulator with the chain can verify any record without accessing Svitch servers.
+A regulator with the chain can verify any record without accessing Governor servers.
 
 DPDP Act relevance:
   - Section 6: Consent must be free, specific, informed, unconditional, unambiguous
@@ -53,7 +53,7 @@ class ConsentRecord:
     version: str                    # consent notice version data principal agreed to
     channel: str                    # "web", "mobile_app", "branch", "ivr"
     ip_address_hash: str            # SHA-256 of IP — proves location without storing IP
-    agent_id: Optional[str]         # Svitch agent that triggered the consent request
+    agent_id: Optional[str]         # Governor agent that triggered the consent request
     prev_hash: str                  # SHA-256 of previous record in chain
     record_hash: str                # SHA-256 of this record's canonical fields
     withdrawal_of: Optional[str] = None  # set on withdrawal records: points to original consent_id
@@ -92,7 +92,7 @@ def hash_identity(value: str) -> str:
 
 # ── Storage ───────────────────────────────────────────────────────────────────
 
-_DB_PATH = os.environ.get("SVITCH_CONSENT_DB", "svitch_consent.db")
+_DB_PATH = os.environ.get("GOVERNOR_CONSENT_DB", "governor_consent.db")
 _memory_conn: Optional[sqlite3.Connection] = None
 
 
@@ -382,7 +382,7 @@ def proof(consent_id: str) -> dict:
     """
     Generate a portable cryptographic proof of consent.
     This can be shared with regulators or auditors without giving them
-    access to Svitch's database.
+    access to Governor's database.
     """
     init_db()
     with _conn() as c:
@@ -414,7 +414,7 @@ def proof(consent_id: str) -> dict:
             "To independently verify: recompute SHA-256 of the canonical fields "
             "(purpose, data_categories sorted, legal_basis, status, granted_at_ms, "
             "expires_at_ms, version, channel, ip_address_hash, prev_hash) and compare "
-            "with record_hash. No access to Svitch servers required."
+            "with record_hash. No access to Governor servers required."
         ),
     }
 

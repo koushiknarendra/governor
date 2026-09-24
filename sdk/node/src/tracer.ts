@@ -1,15 +1,15 @@
 /**
- * Svitch Agent Tracer — TypeScript/Node.js
+ * Governor Agent Tracer — TypeScript/Node.js
  *
- * Drop-in port of svitch_tracer (Python). Records every LLM call, tool use,
+ * Drop-in port of governor_tracer (Python). Records every LLM call, tool use,
  * data access, and agent decision in a hash-chained audit trail.
  *
  * Zero production dependencies — uses native fetch (Node 18+).
  *
  * Usage:
- *   import { SvitchTracer } from 'svitch/tracer';
+ *   import { GovernorTracer } from 'governor/tracer';
  *
- *   const tracer = new SvitchTracer('loan-processor-v2');
+ *   const tracer = new GovernorTracer('loan-processor-v2');
  *   const run = tracer.run();
  *
  *   run.dataAccess('crm', ['aadhaar', 'income'], 'loan_processing', 'CUST-001');
@@ -164,22 +164,22 @@ export class RunContext {
   }
 }
 
-// ── SvitchTracer ──────────────────────────────────────────────────────────────
+// ── GovernorTracer ──────────────────────────────────────────────────────────────
 
 /**
- * Entry point for the Svitch Agent Tracer.
+ * Entry point for the Governor Agent Tracer.
  *
  * @param agentId   Unique name for this agent, e.g. "loan-processor-v2"
  * @param opts.apiUrl  Override the Agent Tracer API URL.
- *                     Defaults to SVITCH_TRACER_URL env var, then hosted service.
+ *                     Defaults to GOVERNOR_TRACER_URL env var, then hosted service.
  */
-export class SvitchTracer {
+export class GovernorTracer {
   readonly agentId: string;
-  readonly _url: string; // exposed for SvitchCallbackHandler compatibility
+  readonly _url: string; // exposed for GovernorCallbackHandler compatibility
 
   constructor(agentId: string, opts: { apiUrl?: string } = {}) {
     this.agentId = agentId;
-    this._url    = (opts.apiUrl ?? process.env['SVITCH_TRACER_URL'] ?? DEFAULT_URL).replace(/\/$/, '');
+    this._url    = (opts.apiUrl ?? process.env['GOVERNOR_TRACER_URL'] ?? DEFAULT_URL).replace(/\/$/, '');
   }
 
   /**

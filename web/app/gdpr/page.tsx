@@ -3,7 +3,7 @@ import Link from "next/link";
 import Logo from "../components/Logo";
 
 export const metadata: Metadata = {
-  title: "GDPR for AI Developers — Svitch",
+  title: "GDPR for AI Developers — Governor",
   description:
     "The complete technical guide to GDPR compliance for AI systems. Every Article mapped to what your LLM pipeline must actually do — in code.",
 };
@@ -168,7 +168,7 @@ export default function GDPRGuidePage() {
             <div style={{ fontSize: 12, color: "#71716B", lineHeight: 1.6, marginBottom: 12 }}>
               All 15 controls in JSON format — import directly into your compliance tooling.
             </div>
-            <a href="https://github.com/koushiknarendra/svitch/blob/main/spec/gdpr-ai-v1.json" target="_blank" rel="noreferrer" style={{
+            <a href="https://github.com/koushiknarendra/governor/blob/main/spec/gdpr-ai-v1.json" target="_blank" rel="noreferrer" style={{
               display: "block", textAlign: "center", padding: "7px 0",
               background: "#0D0D0B", color: "white", borderRadius: 7,
               fontSize: 12, fontWeight: 600, textDecoration: "none",
@@ -277,10 +277,10 @@ export default function GDPRGuidePage() {
             and <strong>unambiguous</strong> (explicit opt-in, no pre-ticked boxes). Withdrawal must
             be as easy as granting.
           </P>
-          <CodeBlock lang="python">{`import svitch
+          <CodeBlock lang="python">{`import governor
 
 # Record GDPR consent before processing EU personal data
-svitch.consent.grant(
+governor.consent.grant(
     data_subject_id="USR-EU-4821",   # never store raw email — hash it
     purpose="credit_risk_assessment",
     legal_basis="explicit_consent",
@@ -291,12 +291,12 @@ svitch.consent.grant(
 )
 
 # Verify before every AI processing call
-result = svitch.consent.verify(consent_id)
+result = governor.consent.verify(consent_id)
 if not result.valid:
     raise PermissionError(f"Cannot process: {result.reason}")
 
 # On withdrawal — must stop ALL processing immediately
-svitch.consent.withdraw(consent_id)`}</CodeBlock>
+governor.consent.withdraw(consent_id)`}</CodeBlock>
 
           {/* Data minimisation */}
           <H2 id="minimisation">Art. 5(1)(c) + Art. 25 — Data minimisation & privacy by design</H2>
@@ -308,14 +308,14 @@ svitch.consent.withdraw(consent_id)`}</CodeBlock>
           <P>
             For AI systems, this is one of the most commonly violated principles. Passing full EU
             personal data records to an LLM when only a subset is needed for the task violates Art.
-            5(1)(c). <Code>svitch.wrap(client, locale=&apos;eu&apos;)</Code> enforces this technically —
+            5(1)(c). <Code>governor.wrap(client, locale=&apos;eu&apos;)</Code> enforces this technically —
             PII is stripped before the prompt leaves your network.
           </P>
-          <CodeBlock lang="python">{`import svitch, openai
-from svitch_tracer import SvitchTracer
+          <CodeBlock lang="python">{`import governor, openai
+from governor_tracer import GovernorTracer
 
-tracer = SvitchTracer(agent_id="eu-credit-agent")
-client = svitch.wrap(
+tracer = GovernorTracer(agent_id="eu-credit-agent")
+client = governor.wrap(
     openai.OpenAI(),
     locale="eu",      # activates IBAN, UK_NIN, EU_PASSPORT, CREDIT_CARD detection
     tracer=tracer,    # logs every call to the audit trail
@@ -330,7 +330,7 @@ response = client.chat.completions.create(
         "content": "Credit risk for IBAN GB29NWBK60161331926819, card 4532015112830366"
     }]
 )`}</CodeBlock>
-          <H3>EU PII types Svitch detects</H3>
+          <H3>EU PII types Governor detects</H3>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginBottom: 24 }}>
             {[
               { type: "IBAN",        note: "57 country codes, format-validated" },
@@ -399,9 +399,9 @@ response = client.chat.completions.create(
             (b) allow the data subject to contest the outcome, (c) provide a meaningful explanation
             of the logic involved. "The model said so" is not a meaningful explanation.
           </P>
-          <CodeBlock lang="python">{`from svitch_tracer import SvitchTracer
+          <CodeBlock lang="python">{`from governor_tracer import GovernorTracer
 
-tracer = SvitchTracer(agent_id="eu-loan-agent")
+tracer = GovernorTracer(agent_id="eu-loan-agent")
 
 with tracer.run() as run:
     run.llm_call("openai", "gpt-4o", redacted_prompt, response)
@@ -436,7 +436,7 @@ with tracer.run() as run:
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 24 }}>
             {[
               { label: "TLS 1.2+ in transit",       status: "required", note: "All LLM API calls over HTTPS" },
-              { label: "PII redaction before API",  status: "required", note: "svitch.wrap(client, locale='eu')" },
+              { label: "PII redaction before API",  status: "required", note: "governor.wrap(client, locale='eu')" },
               { label: "Audit log integrity",        status: "required", note: "Hash-chained, tamper-evident records" },
               { label: "Encryption at rest",         status: "required", note: "All stored EU personal data" },
               { label: "DPA with LLM vendor",        status: "required", note: "Art. 28 processor agreement" },
@@ -504,8 +504,8 @@ with tracer.run() as run:
             mitigations, you must consult your supervisory authority before proceeding.
           </P>
           <Callout type="info">
-            Svitch&apos;s machine-readable{" "}
-            <a href="https://github.com/koushiknarendra/svitch/blob/main/spec/gdpr-ai-v1.json" target="_blank" rel="noreferrer" style={{ color: "#1C6EF2" }}>gdpr-ai-v1.json spec</a>{" "}
+            Governor&apos;s machine-readable{" "}
+            <a href="https://github.com/koushiknarendra/governor/blob/main/spec/gdpr-ai-v1.json" target="_blank" rel="noreferrer" style={{ color: "#1C6EF2" }}>gdpr-ai-v1.json spec</a>{" "}
             maps all 15 GDPR controls to AI obligations with verifiable assertions — use it as
             the technical input to your DPIA risk register.
           </Callout>
@@ -531,37 +531,37 @@ with tracer.run() as run:
           </div>
           <Callout type="info">
             <strong>The practical answer:</strong>{" "}
-            <Code>svitch.wrap(client, locale=&apos;eu&apos;)</Code> strips EU PII before prompts
+            <Code>governor.wrap(client, locale=&apos;eu&apos;)</Code> strips EU PII before prompts
             reach US LLM APIs. This does not eliminate the transfer mechanism requirement (you still
             need SCCs or DPF), but it dramatically reduces the risk and scope of any transfer-related breach.
           </Callout>
 
           {/* Implementation */}
           <H2 id="impl-pii">Implementation: EU PII detection in production</H2>
-          <CodeBlock lang="python">{`# pip install svitch
-import svitch
+          <CodeBlock lang="python">{`# pip install pygovernor
+import governor
 
 # Detect EU entities
-entities = svitch.detect(
+entities = governor.detect(
     "IBAN: GB29NWBK60161331926819, NIN: AB123456D",
     locale="eu",
 )
 # [Entity(type='IBAN', ...), Entity(type='UK_NIN', ...)]
 
 # Redact — token replacement (default)
-result = svitch.redact("Card: 4532015112830366", locale="eu")
+result = governor.redact("Card: 4532015112830366", locale="eu")
 result.text    # "Card: [CREDIT_CARD]"
 result.count   # 1
 
 # Redact — partial mask (GDPR-friendly, preserves last 4)
-result = svitch.redact("Card: 4532015112830366", locale="eu", replacement="mask")
+result = governor.redact("Card: 4532015112830366", locale="eu", replacement="mask")
 result.text    # "Card: XXXX-XXXX-XXXX-0366"
 
 # IBAN mask preserves first 4 chars (country + check) and last 4 digits
-result = svitch.redact("IBAN GB29NWBK60161331926819", locale="eu", replacement="mask")
+result = governor.redact("IBAN GB29NWBK60161331926819", locale="eu", replacement="mask")
 result.text    # "IBAN GB29XXXXXXXXXXXXXX6819"`}</CodeBlock>
-          <CodeBlock lang="typescript">{`// npm install svitch-sdk
-import { detect, redact, wrap, SvitchTracer } from 'svitch-sdk';
+          <CodeBlock lang="typescript">{`// npm install governor-sdk
+import { detect, redact, wrap, GovernorTracer } from 'governor-sdk';
 
 // Detect EU entities
 const { entities } = detect("NIN: AB123456D, IBAN: GB29NWBK60161331926819", "eu");
@@ -571,7 +571,7 @@ const { text } = redact("Card 4532015112830366", "eu", "mask");
 // "Card XXXX-XXXX-XXXX-0366"
 
 // Wrap + trace
-const tracer = new SvitchTracer("eu-credit-agent");
+const tracer = new GovernorTracer("eu-credit-agent");
 const client = wrap(new OpenAI(), { locale: "eu", tracer });`}</CodeBlock>
 
           {/* Audit trail */}
@@ -584,13 +584,13 @@ const client = wrap(new OpenAI(), { locale: "eu", tracer });`}</CodeBlock>
             measures.
           </P>
           <P>
-            The Svitch Agent Tracer generates this automatically — every run logs the fields
+            The Governor Agent Tracer generates this automatically — every run logs the fields
             accessed, the purpose, the LLM provider, and a timestamp. The compliance engine
             aggregates these into an Art. 30 report on demand.
           </P>
-          <CodeBlock lang="python">{`from svitch_tracer import SvitchTracer
+          <CodeBlock lang="python">{`from governor_tracer import GovernorTracer
 
-tracer = SvitchTracer(agent_id="eu-loan-agent-v3")
+tracer = GovernorTracer(agent_id="eu-loan-agent-v3")
 
 with tracer.run() as run:
     run.data_access(
@@ -672,7 +672,7 @@ valid, msg = run.verify()  # cryptographic proof chain is intact`}</CodeBlock>
           <Check>Sign DPAs (Art. 28) with all LLM API vendors — OpenAI, Anthropic, Google, etc.</Check>
           <Check>Verify EU-US DPF certification or SCCs for each US-based LLM vendor</Check>
           <Check>Publish privacy notice naming AI processing purposes and LLM vendor categories (Art. 13)</Check>
-          <Check>Implement <Code>svitch.wrap(client, locale=&apos;eu&apos;)</Code> on all LLM clients</Check>
+          <Check>Implement <Code>governor.wrap(client, locale=&apos;eu&apos;)</Code> on all LLM clients</Check>
 
           <H3>At runtime</H3>
           <Check>Verify lawful basis before every AI processing operation</Check>
@@ -700,7 +700,7 @@ valid, msg = run.verify()  # cryptographic proof chain is intact`}</CodeBlock>
               </div>
               <div style={{ fontSize: 14, color: "#A8A8A2", lineHeight: 1.65 }}>
                 EU PII detection, Art. 22 human checkpoints, Art. 30 records — all wired in
-                with <Code style={{ background: "rgba(255,255,255,0.1)", color: "#E8E8E4" }}>svitch.wrap(client, locale=&apos;eu&apos;)</Code>.
+                with <Code style={{ background: "rgba(255,255,255,0.1)", color: "#E8E8E4" }}>governor.wrap(client, locale=&apos;eu&apos;)</Code>.
               </div>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10, flexShrink: 0 }}>
@@ -709,7 +709,7 @@ valid, msg = run.verify()  # cryptographic proof chain is intact`}</CodeBlock>
                 background: "#2563eb", color: "white", textDecoration: "none",
                 fontSize: 14, fontWeight: 600, textAlign: "center", whiteSpace: "nowrap",
               }}>Open Dashboard →</Link>
-              <a href="https://github.com/koushiknarendra/svitch/blob/main/spec/gdpr-ai-v1.json" target="_blank" rel="noreferrer" style={{
+              <a href="https://github.com/koushiknarendra/governor/blob/main/spec/gdpr-ai-v1.json" target="_blank" rel="noreferrer" style={{
                 display: "block", padding: "9px 24px", borderRadius: 8,
                 background: "rgba(255,255,255,0.08)", color: "#A8A8A2", textDecoration: "none",
                 fontSize: 14, fontWeight: 500, textAlign: "center", border: "1px solid rgba(255,255,255,0.1)",

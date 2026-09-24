@@ -1,4 +1,4 @@
-// Shared Svitch logo — use this everywhere. Do not inline logo markup in individual pages.
+// Shared Governor logo — use this everywhere. Do not inline logo markup in individual pages.
 // theme="dark"  → white wordmark (for dark sidebar/backgrounds)
 // theme="light" → dark wordmark (for light nav/backgrounds)
 
@@ -40,7 +40,7 @@ export default function Logo({ theme = "light", size = "md" }: LogoProps) {
         color: theme === "dark" ? "#FFFFFF" : "#0D0D0B",
         lineHeight: 1,
       }}>
-        Svitch
+        Governor
       </span>
     </span>
   );

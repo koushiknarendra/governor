@@ -1,6 +1,6 @@
 """
 Enclave integration test — runs without Docker or GPU.
-Spins up a mock vLLM server and the Svitch inference server in-process,
+Spins up a mock vLLM server and the Governor inference server in-process,
 then fires requests through and verifies PII is blocked.
 
 Run: python test_enclave.py
@@ -18,7 +18,7 @@ import urllib.error
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "pii-shield", "service"))
 sys.path.insert(0, os.path.join(ROOT, "agent-tracer"))
-os.environ.setdefault("SVITCH_DB_PATH", ":memory:")
+os.environ.setdefault("GOVERNOR_DB_PATH", ":memory:")
 
 # ── Shared port constants ─────────────────────────────────────────────────────
 MOCK_LLM_PORT    = 19871
@@ -131,9 +131,9 @@ assert "ABCDE1234F"     not in echo, "PAN leaked to LLM!"
 assert "[AADHAAR]"      in echo
 assert "[PAN]"          in echo
 
-svitch_meta = resp.get("svitch", {})
-print(f"  PII blocked  : {svitch_meta.get('pii_blocked')}")
-print(f"  PII types    : {svitch_meta.get('pii_types')}")
+governor_meta = resp.get("governor", {})
+print(f"  PII blocked  : {governor_meta.get('pii_blocked')}")
+print(f"  PII types    : {governor_meta.get('pii_types')}")
 print("  PASS — Aadhaar and PAN redacted before LLM call")
 
 
@@ -144,7 +144,7 @@ resp2 = _post(f"http://127.0.0.1:{ENCLAVE_PORT}/v1/chat/completions", {
 })
 echo2 = resp2["choices"][0]["message"]["content"]
 assert "capital of India" in echo2
-assert resp2["svitch"]["pii_blocked"] is False
+assert resp2["governor"]["pii_blocked"] is False
 print(f"  Clean prompt passed through: {echo2[:60]}")
 print("  PASS")
 
@@ -160,7 +160,7 @@ resp3 = _post(f"http://127.0.0.1:{ENCLAVE_PORT}/v1/chat/completions", {
 echo3 = resp3["choices"][0]["message"]["content"]
 assert "9876543210"    not in echo3, "Mobile leaked!"
 assert "rahul@okicici" not in echo3, "UPI leaked!"
-pii_types = resp3["svitch"]["pii_types"]
+pii_types = resp3["governor"]["pii_types"]
 assert "MOBILE_IN" in pii_types
 assert "UPI_ID"    in pii_types
 print(f"  PII types blocked: {pii_types}")

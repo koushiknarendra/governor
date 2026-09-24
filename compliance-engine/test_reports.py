@@ -8,7 +8,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "agent-tracer"))
-os.environ["SVITCH_DB_PATH"] = ":memory:"
+os.environ["GOVERNOR_DB_PATH"] = ":memory:"
 
 from report_gen import generate_dpia, generate_rbi_free
 from report_gen.base import ProcessingActivity
@@ -19,11 +19,11 @@ def sep(t): print(f"\n{'─'*54}\n  {t}\n{'─'*54}")
 
 
 # ── Seed agent-tracer data ────────────────────────────────────────────────────
-from svitch_tracer import SvitchTracer
-from svitch_tracer.storage.db import init_db
+from governor_tracer import GovernorTracer
+from governor_tracer.storage.db import init_db
 
 init_db()
-tracer = SvitchTracer(agent_id="loan-processor-v1", auto_init_db=False)
+tracer = GovernorTracer(agent_id="loan-processor-v1", auto_init_db=False)
 
 with tracer.run() as run:
     run.data_access(source="customer_db", fields_accessed=["aadhaar", "pan", "income"],
@@ -116,7 +116,7 @@ assert str(summary["overall_compliance_score_pct"]) + "%" in html
 print(f"  HTML length : {len(html):,} chars")
 print("  PASS — HTML renders correctly")
 
-out_path = "/tmp/svitch_dpia_sample.html"
+out_path = "/tmp/governor_dpia_sample.html"
 with open(out_path, "w") as f:
     f.write(html)
 print(f"  Saved → {out_path}")
@@ -164,7 +164,7 @@ assert str(rsummary["overall_score_pct"]) + "%" in rbi_html
 print(f"  HTML length : {len(rbi_html):,} chars")
 print("  PASS")
 
-rbi_out = "/tmp/svitch_rbi_free_sample.html"
+rbi_out = "/tmp/governor_rbi_free_sample.html"
 with open(rbi_out, "w") as f:
     f.write(rbi_html)
 print(f"  Saved → {rbi_out}")

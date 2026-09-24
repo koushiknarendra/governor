@@ -3,18 +3,18 @@ Client wrappers — drop-in replacements for OpenAI and Anthropic clients
 that automatically redact PII from prompts before sending and from
 responses before returning.
 
-Optionally accepts a SvitchTracer to log every LLM call to the audit trail.
+Optionally accepts a GovernorTracer to log every LLM call to the audit trail.
 
 Usage — PII redaction only:
-    import svitch, openai
-    client = svitch.wrap(openai.OpenAI())
+    import governor, openai
+    client = governor.wrap(openai.OpenAI())
 
 Usage — PII redaction + audit trail:
-    import svitch, openai
-    from svitch_tracer import SvitchTracer
+    import governor, openai
+    from governor_tracer import GovernorTracer
 
-    tracer = SvitchTracer(agent_id="loan-agent-v2")
-    client = svitch.wrap(openai.OpenAI(), tracer=tracer)
+    tracer = GovernorTracer(agent_id="loan-agent-v2")
+    client = governor.wrap(openai.OpenAI(), tracer=tracer)
     # Every LLM call is logged as an audit event; PII is stripped from the log.
 """
 
@@ -39,7 +39,7 @@ def wrap(
         client:  openai.OpenAI, openai.AsyncOpenAI, anthropic.Anthropic,
                  or anthropic.AsyncAnthropic instance.
         locale:  PII detection locale — "in", "eu", "us", "global", or "all".
-        tracer:  Optional SvitchTracer. When provided, every LLM call is logged
+        tracer:  Optional GovernorTracer. When provided, every LLM call is logged
                  as an audit event with PII-redacted prompt and response.
 
     Returns:
@@ -53,7 +53,7 @@ def wrap(
         return _wrap_anthropic(client, locale, tracer)
 
     raise TypeError(
-        f"svitch.wrap() does not support {client_type}. "
+        f"governor.wrap() does not support {client_type}. "
         "Supported: openai.OpenAI, openai.AsyncOpenAI, "
         "anthropic.Anthropic, anthropic.AsyncAnthropic"
     )
