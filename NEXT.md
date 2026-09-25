@@ -7,6 +7,10 @@ Last updated: 2026-09-24
 Everything is live, for real, for the first time. Renamed from Svitch to Governor
 (2026-09-24) — repo, packages, domain, all of it.
 
+All 6 Vercel projects (web + agent-tracer, consent-ledger, compliance-engine, llm-router,
+pii-shield/service) are now Git-connected to this repo with correct per-service root
+directories — every push to `main` auto-deploys all of them. No more manual `vercel --prod`.
+
 **What's complete and live:**
 - Python SDK — `pip install pygovernor` (PyPI distribution name; `import governor` in code).
   PII detection: Aadhaar, PAN, UPI, IFSC, Mobile, GST, Bank Account, Voter ID, Passport, DL,
