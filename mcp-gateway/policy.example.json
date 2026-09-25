@@ -1,0 +1,12 @@
+{
+  "get_customer": {
+    "mode": "redact",
+    "never_return_fields": ["salary", "internal_notes"]
+  },
+  "get_public_faq": {
+    "mode": "allow"
+  },
+  "delete_employee_record": {
+    "mode": "block"
+  }
+}
