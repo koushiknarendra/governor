@@ -51,6 +51,9 @@ are buffered and returned as a single JSON response rather than re-streamed
 result is scanned before reaching the client, which is the part that
 actually matters for data-leak prevention.
 
+`UPSTREAM_MCP_URL` is now set to the demo ERP (`../mcp-demo-erp`) so this is
+a live, working demo — not just deployed code with nothing to proxy to.
+
 Deployed at `https://mcp-gateway-theta.vercel.app` (git-connected, auto-deploys
 on push). Built as part of Governor's compliance layer — same repo, same PII
 detection engine as PII Shield / Agent Tracer. `UPSTREAM_MCP_URL` isn't set
