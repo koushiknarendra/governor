@@ -118,6 +118,12 @@ cases = [
         ["BANK_ACCOUNT"],
         "Account number: [BANK_ACCOUNT]",
     ),
+    (
+        "Bank account, plain 'account' phrasing (no 'number'/'no')",
+        "Bank account 123456789012",
+        ["BANK_ACCOUNT"],
+        "Bank account [BANK_ACCOUNT]",
+    ),
     # EU / GDPR
     (
         "IBAN (GB)",

@@ -37,15 +37,30 @@ DEFAULT_POLICY = ToolPolicy(mode="redact")
 
 def load_policy(path: str | None = None) -> dict[str, ToolPolicy]:
     """
-    Load a policy file: {"tool_name": {"mode": "...", "always_redact_fields": [...], "never_return_fields": [...]}}
-    Missing file or GOVERNOR_MCP_POLICY unset → empty map, every tool falls
-    back to DEFAULT_POLICY (redact-by-default).
+    Load policy config: {"tool_name": {"mode": "...", "always_redact_fields": [...], "never_return_fields": [...]}}
+
+    Two sources, checked in order:
+      1. GOVERNOR_MCP_POLICY_JSON — inline JSON (env var), for serverless
+         deployments where there's no mounted filesystem to point a path at.
+      2. GOVERNOR_MCP_POLICY / `path` — a file path, for local/self-hosted runs.
+
+    Neither set → empty map, every tool falls back to DEFAULT_POLICY
+    (redact-by-default — never silently allow raw data through).
     """
+    inline = os.getenv("GOVERNOR_MCP_POLICY_JSON", "")
+    if inline:
+        raw = json.loads(inline)
+        return _build(raw)
+
     path = path or os.getenv("GOVERNOR_MCP_POLICY", "")
     if not path or not os.path.isfile(path):
         return {}
     with open(path) as f:
         raw = json.load(f)
+    return _build(raw)
+
+
+def _build(raw: dict) -> dict[str, ToolPolicy]:
     return {
         name: ToolPolicy(
             mode=cfg.get("mode", "redact"),

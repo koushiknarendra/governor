@@ -71,7 +71,7 @@ _IFSC = re.compile(r'\b([A-Z]{4}0[A-Z0-9]{6})\b')
 _MOBILE_IN = re.compile(r'(?<!\d)(?:\+91[\s\-]?|91[\s\-]?|0)?([6-9][0-9]{9})(?!\d)')
 _GST = re.compile(r'\b([0-3][0-9][A-Z]{5}[0-9]{4}[A-Z][0-9A-Z]Z[0-9A-Z])\b')
 _BANK_ACCOUNT = re.compile(
-    r'(?:account\s*(?:number|no\.?|#)|a/?c\s*(?:no\.?|#)|bank\s*a/?c)[\s:]*([0-9]{9,18})',
+    r'(?:account\s*(?:number|no\.?|#)?|a/?c\s*(?:no\.?|#)?|bank\s*a/?c|bank\s*account)[\s:]*([0-9]{9,18})',
     re.IGNORECASE
 )
 

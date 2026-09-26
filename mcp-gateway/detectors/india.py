@@ -105,7 +105,7 @@ _GST = re.compile(
 # false positives (plain long numbers are common for other reasons).
 # ---------------------------------------------------------------------------
 _BANK_ACCOUNT_CONTEXT = re.compile(
-    r'(?:account\s*(?:number|no\.?|#)|a/?c\s*(?:no\.?|#)|bank\s*a/?c)'
+    r'(?:account\s*(?:number|no\.?|#)?|a/?c\s*(?:no\.?|#)?|bank\s*a/?c|bank\s*account)'
     r'[\s:]*([0-9]{9,18})',
     re.IGNORECASE
 )
